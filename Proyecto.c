@@ -1,7 +1,9 @@
 #include <stdio.h>
+
 //CONSTANTES
 #define MAX_PROVEEDORES 3
 #define MAX_PRODUCTOS 10
+
 
 // VARIABLES GLOBALES
 int contProductos=0;
@@ -12,6 +14,8 @@ int auxTamano;
 int auxCantidad;
 int auxProveedor;
 int auxActivo;
+int encontrado=0;
+int eliminarID;
 
 
 // ESTRUCTURAS
@@ -31,7 +35,7 @@ struct Producto
     int activo;
 };
 
-struct Proveedor //contigo no sé qué hacer aún, pero lo dejo por si acaso
+struct Proveedor 
 {
     int rif;
     char nombre[50];
@@ -65,6 +69,13 @@ void eliminar();
 void mostrarProducto();
 int consultar();
 void retirar();
+
+//CODIGO PRINCIPAL
+int main()
+{
+    almacen();
+    return 0;
+}
 
 //DESARROLLO DE FUNCIONES
 
@@ -223,30 +234,55 @@ void fechaIngreso()
 void nombreProveedor()
 {
     int p;
-    printf("Nombre del proveedor: \n");
-    
-    for (p = 0; p < MAX_PROVEEDORES; p++)
+    int confirmacion;
+    encontrado=0; //al ser una variable global, aqui la reseteamos antes que nada
+
+    do
     {
-        printf("%d) %s\n", p+1, proveedores[p].nombre);
-    }
-        printf("Seleccion: ");
+        printf("RIF del proveedor: \n");
+        scanf("%d", &auxProveedor);
 
-    scanf("%d", &auxProveedor); //<- guarda el valor ingresado en la variable nombreProveedor dentro de la estructura Producto
-    
-    while(auxProveedor<1 || auxProveedor>MAX_PROVEEDORES)
-    {
-        printf("Opcion invalida, ingrese el nombre del proveedor: ");
-        scanf("%d", &auxProveedor);	
-    }
+        for (p = 0; p < MAX_PROVEEDORES; p++)
+        {
+            if (proveedores[p].rif == auxProveedor)
+            {
+                printf("\n--- INFORMACION DEL PROVEEDOR ---\n");
+                printf("RIF: %d\n", proveedores[p].rif);
+                printf("Nombre: %s\n", proveedores[p].nombre);
+                printf("Codigo: %s\n", proveedores[p].codigo);
+                printf("----------------------------------\n");
 
-    auxProveedor--;
+                printf("¿Desea seleccionar este proveedor? (1: Si, 0: No): ");
+                scanf("%d", &confirmacion);
 
-    printf("Seleccionaste: %s\n", proveedores[auxProveedor].nombre);
-    printf("RIF: %d\n", proveedores[auxProveedor].rif);
-    printf("Nombre: %s\n", proveedores[auxProveedor].nombre);
-    printf("Codigo: %s\n", proveedores[auxProveedor].codigo);
+                while(confirmacion<0 || confirmacion>1)
+                {
+                    printf("Opcion invalida, ingrese 1 para seleccionar o 0 para no seleccionar: ");
+                    scanf("%d", &confirmacion);	
+                }
 
-    productos[contProductos].nombreProveedor[15] = proveedores[auxProveedor].nombre[15]; //<- guarda el nombre del proveedor seleccionado en el campo nombreProveedor de la estructura Producto
+                if (confirmacion == 1)
+                {
+                    int n;
+                    for ( n = 0; proveedores[p].nombre[n] != '\0'; n++)
+                    {
+                        productos[contProductos].nombreProveedor[n] = proveedores[p].nombre[n];//aquí se pone feo, esto hace un print LETRA POR LETRA del nombre del proveedor seleccionado y lo guarda en la información del arreglo del producto, sería más facil si usaramos la librería string.h pero como "las computadoras de la universidad no tienen esas librerías" toca así :v
+                    }
+
+                    productos[contProductos].nombreProveedor[n] = '\0'; // Agrega el carácter nulo al final de la cadena
+
+                    encontrado=1;
+                    break; // Sale del ciclo for si el usuario confirma la selección del proveedor
+                }
+                else
+                {
+                    printf("RIF no encontrado, intente de nuevo.\n");
+                    encontrado=0; // Si el usuario no confirma, se reinicia la búsqueda
+                }
+            }
+        }
+        
+    } while (encontrado == 0);
 }
 
 int activo()
@@ -309,27 +345,42 @@ void eliminar()
 {
     int eliminarID;
     int l;
-
-    noHallado();
-    if (contProductos != 0)
+    int activos=0; //esta es pa saber CUANTOS PRODUCTOS EXISTEN
+    encontrado=0; //como dije antes, al ser una variable global, aqui la reseteamos antes que nada
+    
+    if (contProductos == 0)
     {
-        printf("ID del producto a eliminar: ");
-        scanf("%d", &eliminarID);
+        noHallado();
+        return;
+    }
 
-        for (l=0; l < contProductos; l++)
+    printf("ID del producto a eliminar: ");
+    scanf("%d", &eliminarID);
+
+    for (l=0; l < contProductos; l++)
+    {
+        // Solo buscamos entre los que estan activos
+        if (productos[l].activo == 1)
         {
-            // Solo buscamos entre los que estan activos
-            if (productos[l].id == eliminarID && productos[l].activo == 1)
+            activos++;
+
+            if (productos[l].id == eliminarID)
             {
-                productos[l].activo = 0; // "Borrado"
-                printf(">> Producto '%s' marcado como inactivo (eliminado).\n", productos[l].name);
-                break;
-            }
-            else
-            {
-                printf("No se encontro el ID o ya fue eliminado");
+                productos[l].activo = 0; //marcamos el producto como inactivo en lugar de eliminarlo físicamente del arreglo, esto permite mantener la integridad del arreglo y evitar problemas con los índices de los productos restantes
+                printf("Producto con ID %d ha sido eliminado (marcado como inactivo).\n", eliminarID);
+                encontrado=1;
+                break; // Salimos del ciclo una vez que encontramos y marcamos el producto como inactivo
             }
         }
+    }
+
+    if (activos == 0)
+    {
+        noHallado();
+    }
+    else if (encontrado == 0)
+    {
+        printf("No se encontro el ID o ya fue eliminado.\n");
     }
 }
 
@@ -369,11 +420,12 @@ int consultar()
     int buscarID;
     int k;
 
-    printf("ID del producto a consultar: ");
-    scanf("%d", &buscarID);
 
     if (contProductos != 0)
     {
+        printf("ID del producto a consultar: ");
+        scanf("%d", &buscarID);
+
         for (k = 0; k < contProductos; k++) //ciclo for para recorrer el arreglo de productos y buscar el producto con el ID ingresado por el usuario
         {
             if (productos[k].id == buscarID)// condición para verificar si el ID del producto en la posición k del arreglo productos coincide con el ID ingresado por el usuario, si se encuentra una coincidencia, se muestra la información detallada del producto
@@ -405,6 +457,7 @@ void noHallado()
     {
         printf("===========================================================\n");
         printf("\nEl inventario esta vacio.\n\n");
+        return;
     }
 }
 
@@ -433,10 +486,4 @@ void almacen()
             break;
         }
     } while (option != 6);
-}
-//CODIGO PRINCIPAL
-int main()
-{
-    almacen();
-    return 0;
 }
