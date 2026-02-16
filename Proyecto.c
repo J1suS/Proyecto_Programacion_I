@@ -1,7 +1,7 @@
 #include <stdio.h>
 //CONSTANTES
 #define MAX_PROVEEDORES 3
-#define MAX_PRODUCTOS 5
+#define MAX_PRODUCTOS 10
 
 // VARIABLES GLOBALES
 int contProductos=0;
@@ -12,6 +12,7 @@ int auxTamano;
 int auxCantidad;
 int auxProveedor;
 int auxActivo;
+
 
 // ESTRUCTURAS
 struct Producto
@@ -45,7 +46,9 @@ struct Proveedor proveedores[MAX_PROVEEDORES] = {
 
 struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 
+
 //FUNCIONES
+void almacen();
 int menu();
 void noHallado();
 void registrarProducto();
@@ -63,6 +66,7 @@ void mostrarProducto();
 int consultar();
 void retirar();
 
+//DESARROLLO DE FUNCIONES
 
 int menu()
 {
@@ -259,7 +263,7 @@ int activo()
     }
 }
 
-void registrarProducto()//función para registrar un nuevo producto en el inventario
+void registrarProducto()
 {
     if (contProductos < MAX_PRODUCTOS)//no se podrán ingresar más datos si no se cumple esta condición
     {
@@ -272,19 +276,19 @@ void registrarProducto()//función para registrar un nuevo producto en el invent
         fechaIngreso();
         nombreProveedor();
         activo();
-        contProductos++; //<- incrementa el contador de productos para que el siguiente producto se guarde en la siguiente posición del arreglo productos
+        contProductos++;
     }
     else
     {
-        printf("\nEl inventario esta lleno.\n"); //<- mensaje que se muestra si el contador de productos ha alcanzado el máximo permitido, indicando que no se pueden ingresar más productos al inventario
+        printf("\nEl inventario esta lleno.\n");
     }
 }
 
-void mostrarProducto()//función para mostrar info general de todos los productos registrados en el inventario
+void mostrarProducto()
 {
-    int i; //variable de control para el ciclo for
+    int i;
 
-    noHallado(); //<- llamada a la función noHallado para verificar si el inventario está vacío antes de intentar mostrar los productos
+    noHallado(); //verificamos si el inventario está vacío antes de intentar mostrar los productos
     if (contProductos != 0)
     {
         printf("==================== INVENTARIO ACTUAL ====================\n");
@@ -307,32 +311,33 @@ void eliminar()
     int l;
 
     noHallado();
-
-    printf("ID del producto a eliminar: ");
-    scanf("%d", &eliminarID);
-
-    for (l=0; l < contProductos; l++)
+    if (contProductos != 0)
     {
-        // Solo buscamos entre los que estan activos
-        if (productos[l].id == eliminarID && productos[l].activo == 1)
+        printf("ID del producto a eliminar: ");
+        scanf("%d", &eliminarID);
+
+        for (l=0; l < contProductos; l++)
         {
-            productos[l].activo = 0; // "Borrado" lógico
-            printf(">> Producto '%s' marcado como inactivo (eliminado).\n", productos[l].name);
-            break;
-        }
-        else
-        {
-            printf("No se encontro el ID o ya fue eliminado");
+            // Solo buscamos entre los que estan activos
+            if (productos[l].id == eliminarID && productos[l].activo == 1)
+            {
+                productos[l].activo = 0; // "Borrado"
+                printf(">> Producto '%s' marcado como inactivo (eliminado).\n", productos[l].name);
+                break;
+            }
+            else
+            {
+                printf("No se encontro el ID o ya fue eliminado");
+            }
         }
     }
-
-
 }
 
-void retirar() //función para retirar productos del inventario, aún no implementada
+void retirar() 
 {
     printf("Codigo de producto a retirar: ");
     scanf("%d", &auxCodigo);
+    //reutilizamos la función para encontrar el producto por su código
     buscarCodigo();
     if (posEncontrada == -1)
     {
@@ -359,7 +364,7 @@ void retirar() //función para retirar productos del inventario, aún no impleme
     }
 }
 
-int consultar() //función para consultar los detalles de un producto específico mostrando toda la info
+int consultar() 
 {
     int buscarID;
     int k;
@@ -403,8 +408,7 @@ void noHallado()
     }
 }
 
-//CODIGO PRINCIPAL
-int main()
+void almacen()
 {
     int option;
     do
@@ -429,6 +433,10 @@ int main()
             break;
         }
     } while (option != 6);
-
+}
+//CODIGO PRINCIPAL
+int main()
+{
+    almacen();
     return 0;
 }
