@@ -56,6 +56,8 @@ float precio();
 void fechaIngreso();
 void nombreProveedor();
 int activo();
+int buscarCodigo();
+void eliminar();
 
 
 int menu()
@@ -81,26 +83,55 @@ int menu()
             printf("\nOpcion invalida, intente de nuevo.\n");
         }
     }while (option < 1 || option > 6);
-
     return option;
 }
 
 int codigo()
 {
-    printf("===========================================================\n");
-    printf("ID: ");
-    scanf("%d", &auxCodigo); //<- variable auxiliar para validar
+    int repetido;
     
-    //validación del código
-    while(auxCodigo<0)
+    
+        printf("===========================================================\n");
+        printf("ID: ");
+        scanf("%d", &auxCodigo); //<- variable auxiliar para validar
+    do
+    {
+        repetido=0;
+        //validación del código
+        while(auxCodigo<0)
+            {
+            printf("Codigo incorrecto, ingrese el codigo: ");
+            scanf("%d", &auxCodigo);	
+            }
+        //fin validación
+
+        buscarCodigo();
+
+        if(posEncontrada!=-1)
         {
-        printf("Codigo incorrecto, ingrese el codigo: ");
-        scanf("%d", &auxCodigo);	
+            printf("El ID ya existe, ingrese otro ID: ");
+            scanf("%d", &auxCodigo);
+            repetido=1;
         }
-    //fin validación
+    } while (repetido==1);
 
     productos[contProductos].id = auxCodigo;
     return auxCodigo;
+}
+
+int buscarCodigo()
+{
+    int c;
+    posEncontrada = -1;
+    for ( c = 0; c < contProductos; c++)
+    {
+        if (productos[c].id == auxCodigo)
+        {
+            posEncontrada = c;
+            break;
+        }
+    }
+    return posEncontrada;
 }
 
 void nombre()
@@ -255,7 +286,7 @@ void mostrarProducto()//función para mostrar info general de todos los producto
         printf("==================== INVENTARIO ACTUAL ====================\n");
         printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO"); //<- encabezado de la tabla que se muestra al usuario, con formato para alinear ID, Nombre, Precio, Stock y Estado
         printf("-----------------------------------------------------------\n");
-        for (i = 0; i < MAX_PRODUCTOS; i++) //ciclo for para recorrer el arreglo de productos y mostrar la información de cada producto registrado en el inventario
+        for (i = 0; i < contProductos; i++) //ciclo for para recorrer el arreglo de productos y mostrar la información de cada producto registrado en el inventario
         {
             if (productos[i].activo == 1)
             {
@@ -266,6 +297,34 @@ void mostrarProducto()//función para mostrar info general de todos los producto
     }
 }
 
+void eliminar()
+{
+    int eliminarID;
+    int l;
+
+    noHallado();
+
+    printf("ID del producto a eliminar: ");
+    scanf("%d", &eliminarID);
+
+    for (l=0; l < contProductos; l++)
+    {
+        // Solo buscamos entre los que estan activos
+        if (productos[l].id == eliminarID && productos[l].activo == 1)
+        {
+            productos[l].activo = 0; // "Borrado" lógico
+            printf(">> Producto '%s' marcado como inactivo (eliminado).\n", productos[l].name);
+            break;
+        }
+        else
+        {
+            printf("No se encontro el ID o ya fue eliminado");
+        }
+    }
+
+
+}
+
 int consultar() //función para consultar los detalles de un producto específico mostrando toda la info
 {
     int buscarID;
@@ -274,8 +333,6 @@ int consultar() //función para consultar los detalles de un producto específic
     printf("ID del producto a consultar: ");
     scanf("%d", &buscarID);
 
-    noHallado();
-     
     if (contProductos != 0)
     {
         for (k = 0; k < contProductos; k++) //ciclo for para recorrer el arreglo de productos y buscar el producto con el ID ingresado por el usuario
@@ -283,18 +340,22 @@ int consultar() //función para consultar los detalles de un producto específic
             if (productos[k].id == buscarID)// condición para verificar si el ID del producto en la posición k del arreglo productos coincide con el ID ingresado por el usuario, si se encuentra una coincidencia, se muestra la información detallada del producto
             {
                 printf("\n------------------ DETALLES DEL PRODUCTO ------------------\n");
-                printf("\t\t\tID:        %d\n", productos[k].id);
-                printf("\t\t\tNombre:    %s\n", productos[k].name);
-                printf("\t\t\tTamano:    %.2f gramos\n", productos[k].tamano);
-                printf("\t\t\tStock:     %d unidades\n", productos[k].stock);
-                printf("\t\t\tPrecio:    $%.2f\n", productos[k].precio);
-                printf("\t\t\tFecha de ingreso: %02d/%02d/%04d\n", productos[k].dia, productos[k].mes, productos[k].anio);
-                printf("\t\t\tProveedor: %s\n", productos[k].nombreProveedor);
-                printf("\t\t\tEstado:    %s\n", (productos[k].activo == 1) ? "Activo" : "Inactivo");
+                printf("\t\t    ID:        %d\n", productos[k].id);
+                printf("\t\t    Nombre:    %s\n", productos[k].name);
+                printf("\t\t    Tamano:    %.2f gramos\n", productos[k].tamano);
+                printf("\t\t    Stock:     %d unidades\n", productos[k].stock);
+                printf("\t\t    Precio:    $%.2f\n", productos[k].precio);
+                printf("\t\t    Fecha de ingreso: %02d/%02d/%04d\n", productos[k].dia, productos[k].mes, productos[k].anio);
+                printf("\t\t    Proveedor: %s\n", productos[k].nombreProveedor);
+                printf("\t\t    Estado:    %s\n", (productos[k].activo == 1) ? "Activo" : "Inactivo");
                 printf("--------------------------------------------------------------\n");
                 break;
             }
         }
+    }
+    else
+    {
+        noHallado();
     }
     return buscarID;
 }
@@ -307,6 +368,7 @@ void noHallado()
         printf("\nEl inventario esta vacio.\n\n");
     }
 }
+
 //CODIGO PRINCIPAL
 int main()
 {
@@ -323,10 +385,16 @@ int main()
             mostrarProducto();
             break;
         case 3:
+            eliminar();
+            break;
+        case 4:
+            //retirar(); //<- función para retirar productos del inventario, aún no implementada
+            break;
+        case 5:
             consultar();
             break;
         }
     } while (option != 6);
-    
+
     return 0;
 }
