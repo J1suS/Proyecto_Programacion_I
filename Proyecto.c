@@ -59,6 +59,9 @@ void fechaIngreso();
 void nombreProveedor();
 int activo();
 void eliminar();
+void mostrarProducto();
+int consultar();
+void retirar();
 
 
 int menu()
@@ -137,7 +140,7 @@ int buscarCodigo()
 
 void nombre()
 {
-    printf("Nombre: ");
+    printf("Producto: ");
     scanf(" %s", productos[contProductos].name); //<- guarda lo ingresado en la variable name dentro de la estructura Producto
 }
 
@@ -326,6 +329,36 @@ void eliminar()
 
 }
 
+void retirar() //función para retirar productos del inventario, aún no implementada
+{
+    printf("Codigo de producto a retirar: ");
+    scanf("%d", &auxCodigo);
+    buscarCodigo();
+    if (posEncontrada == -1)
+    {
+        printf("Producto no encontrado o ya eliminado.\n");
+    }
+    else
+    {
+        printf("Cantidad a retirar: ");
+        scanf("%d", &auxCantidad);
+        if (auxCantidad > productos[posEncontrada].stock)
+        {
+            printf("No hay suficiente stock para retirar esa cantidad.\n");
+        }
+        else
+        {
+            productos[posEncontrada].stock -= auxCantidad;
+            printf(">> Retiraste %d unidades del producto '%s'. Stock restante: %d\n", auxCantidad, productos[posEncontrada].name, productos[posEncontrada].stock);
+            if (productos[posEncontrada].stock == 0)
+            {
+                productos[posEncontrada].activo = 0; // Si el stock llega a 0, marcamos el producto como inactivo
+                printf(">> El producto '%s' ahora esta agotado y marcado como inactivo.\n", productos[posEncontrada].name);
+            }
+        }
+    }
+}
+
 int consultar() //función para consultar los detalles de un producto específico mostrando toda la info
 {
     int buscarID;
@@ -389,7 +422,7 @@ int main()
             eliminar();
             break;
         case 4:
-            //retirar(); //<- función para retirar productos del inventario, aún no implementada
+            retirar();
             break;
         case 5:
             consultar();
