@@ -48,6 +48,8 @@ struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 //FUNCIONES
 int menu();
 void noHallado();
+void registrarProducto();
+int buscarCodigo();
 int codigo();
 void nombre();
 int tamano();
@@ -56,7 +58,6 @@ float precio();
 void fechaIngreso();
 void nombreProveedor();
 int activo();
-int buscarCodigo();
 void eliminar();
 
 
@@ -205,7 +206,7 @@ void fechaIngreso()
         printf("Mes invalido, ingrese el mes: ");
         scanf("%d", &productos[contProductos].mes);
     }
-    while (productos[contProductos].anio < 1 || productos[contProductos].anio>99)
+    while (productos[contProductos].anio < 1)
     {
         printf("Anio invalido, ingrese el anio: ");
         scanf("%d", &productos[contProductos].anio);
@@ -340,14 +341,14 @@ int consultar() //función para consultar los detalles de un producto específic
             if (productos[k].id == buscarID)// condición para verificar si el ID del producto en la posición k del arreglo productos coincide con el ID ingresado por el usuario, si se encuentra una coincidencia, se muestra la información detallada del producto
             {
                 printf("\n------------------ DETALLES DEL PRODUCTO ------------------\n");
-                printf("\t\t    ID:        %d\n", productos[k].id);
-                printf("\t\t    Nombre:    %s\n", productos[k].name);
-                printf("\t\t    Tamano:    %.2f gramos\n", productos[k].tamano);
-                printf("\t\t    Stock:     %d unidades\n", productos[k].stock);
-                printf("\t\t    Precio:    $%.2f\n", productos[k].precio);
-                printf("\t\t    Fecha de ingreso: %02d/%02d/%04d\n", productos[k].dia, productos[k].mes, productos[k].anio);
-                printf("\t\t    Proveedor: %s\n", productos[k].nombreProveedor);
-                printf("\t\t    Estado:    %s\n", (productos[k].activo == 1) ? "Activo" : "Inactivo");
+                printf("\t\tID:                 %d\n", productos[k].id);
+                printf("\t\tNombre:             %s\n", productos[k].name);
+                printf("\t\tTamano:             %.2f gramos\n", productos[k].tamano);
+                printf("\t\tStock:              %d unidades\n", productos[k].stock);
+                printf("\t\tPrecio:             $%.2f\n", productos[k].precio);
+                printf("\t\tFecha de ingreso:   %02d/%02d/%04d\n", productos[k].dia, productos[k].mes, productos[k].anio);
+                printf("\t\tProveedor:          %s\n", productos[k].nombreProveedor);
+                printf("\t\tEstado:             %s\n", (productos[k].activo == 1) ? "Activo" : "Inactivo");
                 printf("--------------------------------------------------------------\n");
                 break;
             }
