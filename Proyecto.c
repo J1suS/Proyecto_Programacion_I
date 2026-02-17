@@ -1,24 +1,28 @@
+//--------LIBRERÍA--------
 #include <stdio.h>
 
-//CONSTANTES
+
+//--------CONSTANTES--------
 #define MAX_PROVEEDORES 3
 #define MAX_PRODUCTOS 10
 
 
-// VARIABLES GLOBALES
+//--------VARIABLES GLOBALES--------
 int contProductos=0;
+//Todas las que tengan al inicio aux son auxiliares
 int auxCodigo;
 float auxPrecio;
 int auxTamano;
 int auxCantidad;
 int auxProveedor;
 int auxActivo;
+
 int encontrado=0;
 int eliminarID;
 int activos=0; //esta es pa saber CUANTOS PRODUCTOS EXISTEN realmente (son mostrables)
 
 
-// ESTRUCTURAS
+//--------ESTRUCTURAS--------
 struct Producto
 {
     //Plantilla de datos para cada producto a ingresar
@@ -53,7 +57,7 @@ struct Proveedor proveedores[MAX_PROVEEDORES] = {
 struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 
 
-//FUNCIONES
+//--------FUNCIONES--------
 int encontrarIndice(int BuscarID);
 void almacen();
 int menu();
@@ -72,16 +76,19 @@ void mostrarProducto();
 int consultar();
 void retirar();
 
-//CODIGO PRINCIPAL
+//--------CODIGO PRINCIPAL--------
 int main()
 {
     almacen();
     return 0;
 }
 
-//DESARROLLO DE FUNCIONES
+//--------DESARROLLO DE FUNCIONES--------
 
-//CENTRALIZACIÓN, EL PAPÁ DE LOS POLLITOS
+
+/*[CENTRALIZACIÓN, EL PAPÁ DE LOS POLLITOS]
+  esta belleza hace un solo for y con eso 
+          se utiliza para todo*/
 int encontrarIndice(int BuscarID)
 {
     int i;
@@ -89,10 +96,10 @@ int encontrarIndice(int BuscarID)
     {
         if (productos[i].id == BuscarID && productos[i].activo == 1) // Verifica que el ID coincida y que el producto esté activo
         {
-            return i; // Devuelve el índice del producto encontrado
+            return i; // retorna la iteración del ciclo si hay producto encontrado
         }
     }
-    return -1; // Devuelve -1 si no se encuentra el producto
+    return -1; // retorna -1 si no encuentra un producto
 }
 
 
@@ -128,11 +135,12 @@ int codigo()
 
     printf("====================REGISTRAR PRODUCTO=====================\n");
     printf("ID: ");
-    scanf("%d", &auxCodigo); //<- variable auxiliar para validar
+    scanf("%d", &auxCodigo); //<-auxiliar para validar
 
     do
     {
         repetido=0;
+
         //validación del código
         while(auxCodigo<0)
         {
@@ -141,7 +149,11 @@ int codigo()
         }
         //fin validación
 
-        if(encontrarIndice(auxCodigo) != -1) //utilizamos la función encontrarIndice para verificar si el ID ingresado ya existe en el arreglo de productos, si la función devuelve un índice diferente de -1, significa que el ID ya existe y se solicita al usuario que ingrese otro ID
+        /*utilizamos la función encontrarIndice() para verificar 
+        si el ID ingresado ya existe en el arreglo de productos,
+        si la función retorna -1 significa que el ID ya 
+        existe y se pide al usuario que ingrese otro ID*/
+        if(encontrarIndice(auxCodigo) != -1) 
         {
             printf("El ID ya existe, ingrese otro ID: ");
             scanf("%d", &auxCodigo);
@@ -149,14 +161,14 @@ int codigo()
         }
     } while (repetido==1);
 
-    productos[contProductos].id = auxCodigo;
+    productos[contProductos].id = auxCodigo ;//si no hay código repetido, se asigna a la posición del arreglo de productos correspondiente
     return auxCodigo;
 }
 
 void nombre()
 {
     printf("Producto: ");
-    scanf(" %s", productos[contProductos].name); //<- guarda lo ingresado en la variable name dentro de la estructura Producto
+    scanf(" %s", productos[contProductos].name);
 }
 
 int tamano()
@@ -227,7 +239,7 @@ void fechaIngreso()
             continue;
         }
 
-        if (productos[contProductos].mes < 1 || productos[contProductos].mes > 12)
+        if (productos[contProductos].mes < 1 || productos[contProductos].mes > 12) //tiene que agregar correctamente la fecha completa, si no no sale de este ciclo
         {
             printf("Mes invalido (1-12)\nIngrese el mes: ");
             continue;
@@ -269,11 +281,13 @@ void nombreProveedor()
                 printf("-->");
                 scanf("%d", &confirmacion);
 
+                //validación de la confirmación
                 while(confirmacion<0 || confirmacion>1)
                 {
                     printf("Opcion invalida, 1 para seleccionar o 0 para no seleccionar: ");
                     scanf("%d", &confirmacion);	
                 }
+                //fin validación
 
                 if (confirmacion == 1)
                 {
@@ -294,14 +308,14 @@ void nombreProveedor()
                     //CODIGO DEL PROVEEDOR
                     for ( c = 0; proveedores[p].codigo[c] != '\0'; c++)
                     {
-                        productos[contProductos].codigoProveedor[c] = proveedores[p].codigo[c];//lo mismo que con el nombre pero con el código del proveedor
+                        productos[contProductos].codigoProveedor[c] = proveedores[p].codigo[c];//lo mismo que el nombre pero con el código del proveedor
                     }
                     productos[contProductos].codigoProveedor[c] = '\0'; // Agrega el carácter nulo al final de la cadena
                     //FIN CODIGO
 
                     encontrado=1;
                 }
-                break; // Sale del ciclo for si el usuario confirma la selección del proveedor
+                break; //para no seguir buscando innecesariamente
             }
         }
         if (p == MAX_PROVEEDORES)
@@ -314,6 +328,7 @@ void nombreProveedor()
 
 int activo()
 {
+    //si el stock es mayor a 0, automáticamente pasa a estar disponible
     if (productos[contProductos].stock > 0)
     {
         productos[contProductos].activo = 1;
@@ -338,7 +353,7 @@ void registrarProducto()
         precio();
         fechaIngreso();
         nombreProveedor();
-        productos[contProductos].activo = 1;
+        activo();
         printf("\nProducto registrado exitosamente.\n");
         contProductos++;
         activos++;
@@ -357,9 +372,9 @@ void mostrarProducto()
     if (contProductos != 0)
     {
         printf("==================== INVENTARIO ACTUAL ====================\n");
-        printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO"); //<- encabezado de la tabla que se muestra al usuario, con formato para alinear ID, Nombre, Precio, Stock y Estado
+        printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO");
         printf("-----------------------------------------------------------\n");
-        for (p = 0; p < contProductos; p++) //ciclo for para recorrer el arreglo de productos y mostrar la información de cada producto registrado en el inventario
+        for (p = 0; p < contProductos; p++) //mostrar la información de cada producto registrado en el inventario
         {
             if (productos[p].activo == 1)
             {
@@ -385,7 +400,7 @@ void eliminar()
     printf("ID del producto a eliminar: ");
     scanf("%d", &eliminarID);
 
-    int idx = encontrarIndice(eliminarID); // Utilizamos la función encontrarIndice para obtener el índice del producto a eliminar
+    int idx = encontrarIndice(eliminarID); // nuevamente, encontrarIndice() para obtener el índice del producto a eliminar
     // Solo buscamos entre los que estan activos
     if (idx != -1)
     {
@@ -414,7 +429,7 @@ void retirar()
     printf("ID de producto a retirar: ");
     scanf("%d", &id);
 
-    int idx = encontrarIndice(id);
+    int idx = encontrarIndice(id); //emcontrarIndiceDeidad
 
     if (idx != -1)
     {
@@ -435,7 +450,7 @@ void retirar()
         }
         else
         {
-            ; // Si el stock llega a 0, marcamos el producto como inactivo
+            ; // Si el stock es 0, marcamos el producto como inactivo
             printf("Error!\n");
             printf("Stock insuficiente.\n");
         }
@@ -459,9 +474,9 @@ int consultar()
     printf("ID del producto a consultar: ");
     scanf("%d", &id);
 
-    int idx = encontrarIndice(id);
+    int idx = encontrarIndice(id); //Padre Indice
 
-    if (idx != -1)// condición para verificar si el ID del producto en la posición k del arreglo productos coincide con el ID ingresado por el usuario, si se encuentra una coincidencia, se muestra la información detallada del producto
+    if (idx != -1)//si el producto existe y está activo, se muestra su información detallada
     {
         printf("\n------------------ DETALLES DEL PRODUCTO ------------------\n");
         printf("\t\tID:                     %d\n", productos[idx].id);
@@ -473,10 +488,10 @@ int consultar()
         printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
         printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
         printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
-        printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Activo" : "Inactivo");
+        printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
         printf("------------------------------------------------------------\n");
     }
-    else
+    else//sino, tira este print
     {
         printf("Producto no encontrado.\n");
     }
