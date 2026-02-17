@@ -7,7 +7,6 @@
 
 // VARIABLES GLOBALES
 int contProductos=0;
-int posEncontrada=-1;
 int auxCodigo;
 float auxPrecio;
 int auxTamano;
@@ -55,12 +54,11 @@ struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 
 
 //FUNCIONES
-int EncontrarIndice(int BuscarID);
+int encontrarIndice(int BuscarID);
 void almacen();
 int menu();
 void noHallado();
 void registrarProducto();
-int buscarCodigo();
 int codigo();
 void nombre();
 int tamano();
@@ -82,6 +80,8 @@ int main()
 }
 
 //DESARROLLO DE FUNCIONES
+
+//CENTRALIZACIÓN, EL PAPÁ DE LOS POLLITOS
 int encontrarIndice(int BuscarID)
 {
     int i;
@@ -125,25 +125,23 @@ int menu()
 int codigo()
 {
     int repetido;
-    
-    
-        printf("====================REGISTRAR PRODUCTO=====================\n");
-        printf("ID: ");
-        scanf("%d", &auxCodigo); //<- variable auxiliar para validar
+
+    printf("====================REGISTRAR PRODUCTO=====================\n");
+    printf("ID: ");
+    scanf("%d", &auxCodigo); //<- variable auxiliar para validar
+
     do
     {
         repetido=0;
         //validación del código
         while(auxCodigo<0)
-            {
-            printf("Codigo incorrecto, ingrese el codigo: ");
-            scanf("%d", &auxCodigo);	
-            }
+        {
+        printf("ID invalida, intente otra vez: ");
+        scanf("%d", &auxCodigo);	
+        }
         //fin validación
 
-        buscarCodigo();
-
-        if(posEncontrada!=-1)
+        if(encontrarIndice(auxCodigo) != -1) //utilizamos la función encontrarIndice para verificar si el ID ingresado ya existe en el arreglo de productos, si la función devuelve un índice diferente de -1, significa que el ID ya existe y se solicita al usuario que ingrese otro ID
         {
             printf("El ID ya existe, ingrese otro ID: ");
             scanf("%d", &auxCodigo);
@@ -153,21 +151,6 @@ int codigo()
 
     productos[contProductos].id = auxCodigo;
     return auxCodigo;
-}
-
-int buscarCodigo()
-{
-    int c;
-    posEncontrada = -1;
-    for ( c = 0; c < contProductos; c++)
-    {
-        if (productos[c].id == auxCodigo)
-        {
-            posEncontrada = c;
-            break;
-        }
-    }
-    return posEncontrada;
 }
 
 void nombre()
@@ -229,22 +212,33 @@ float precio()
 
 void fechaIngreso()
 {
-    printf("Fecha de Ingreso (DD/MM/AAAA): ");
-    scanf("%d/%d/%d", &productos[contProductos].dia, &productos[contProductos].mes, &productos[contProductos].anio);
-    while (productos[contProductos].dia < 1 || productos[contProductos].dia>31)
+    int fechaValida=0;
+
+    while (fechaValida == 0)
     {
-        printf("Dia invalido, ingrese el dia: ");
-        scanf("%d", &productos[contProductos].dia);
-    }
-    while (productos[contProductos].mes < 1 || productos[contProductos].mes>12)
-    {
-        printf("Mes invalido, ingrese el mes: ");
-        scanf("%d", &productos[contProductos].mes);
-    }
-    while (productos[contProductos].anio < 1)
-    {
-        printf("Anio invalido, ingrese el anio: ");
-        scanf("%d", &productos[contProductos].anio);
+        printf("Fecha de Ingreso (DD/MM/AAAA): ");
+        scanf("%d/%d/%d", &productos[contProductos].dia, 
+                          &productos[contProductos].mes, 
+                          &productos[contProductos].anio);
+
+        if (productos[contProductos].dia < 1 || productos[contProductos].dia > 31)
+        {
+            printf("Dia invalido (1-31)\nIngrese el dia: ");
+            continue;
+        }
+
+        if (productos[contProductos].mes < 1 || productos[contProductos].mes > 12)
+        {
+            printf("Mes invalido (1-12)\nIngrese el mes: ");
+            continue;
+        }
+
+        if (productos[contProductos].anio < 2000)
+        {
+            printf("Anio invalido (mayor o igual a 2000)\nIngrese el anio: ");
+            continue;
+        }
+        fechaValida=1;
     }
 }
 
@@ -422,7 +416,7 @@ void retirar()
 
     int idx = encontrarIndice(id);
 
-    if (idx == -1)
+    if (idx != -1)
     {
         printf("Cantidad a retirar: ");
         scanf("%d", &cantidad);
