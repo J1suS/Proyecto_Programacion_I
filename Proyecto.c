@@ -71,6 +71,11 @@ int leerTamano();
 int leerStock();
 float leerPrecio();
 int leerFechaIngreso();
+int gestionFecha();
+int dia();
+int diaValido(int day, int month, int year);//d = día, m = mes, a = año. Sencillo
+int mes();
+int anio();
 void leerProveedor();
 int posibleProveedor(int p);
 void encontrarProveedor(int p);
@@ -289,51 +294,173 @@ float leerPrecio()
 
 int leerFechaIngreso()
 {
-    int fechaValida=0;
-
-    while (fechaValida == 0)
+    if (gestionFecha() == -1)
     {
-        printf("Fecha de Ingreso (DD/MM/AAAA) o (-1 para salir): ");
-
-        if (scanf("%d", &productos[contProductos].dia) != 1)
-        {
-            return -1;
-        }
-
-        if (salir(productos[contProductos].dia))
-        {
-            return -1;
-        }
-
-        if (productos[contProductos].dia < 1 || productos[contProductos].dia > 31)
-        {
-            printf("Dia invalido (1-31)\nIngrese el dia: ");
-            continue;
-        }
-        
-
-        scanf(" /%d/%d", &productos[contProductos].mes, 
-                         &productos[contProductos].anio);
-
-        if (productos[contProductos].dia < 1 || productos[contProductos].dia > 31)
-        {
-            printf("Dia invalido (1-31)\nIngrese el dia: ");
-            continue;
-        }
-
-        if (productos[contProductos].mes < 1 || productos[contProductos].mes > 12) //tiene que agregar correctamente la fecha completa, si no no sale de este ciclo
-        {
-            printf("Mes invalido (1-12)\nIngrese el mes: ");
-            continue;
-        }
-
-        if (productos[contProductos].anio < 2000)
-        {
-            printf("Anio invalido (mayor o igual a 2000)\nIngrese el anio: ");
-            continue;
-        }
-        fechaValida=1;
+        return -1;
     }
+
+    return 1;//si to' salió bien
+}
+
+int gestionFecha()
+{
+    int paso = 1; //1=dia, 2=mes, 3=año
+    int result;
+    int valido;
+
+    while (paso <= 3)
+    {
+        switch (paso)
+        {
+        case 1:
+            result = dia();
+            break;
+        case 2:
+            result = mes();
+            break;
+        case 3:
+            result = anio();
+            break;
+        }
+
+        if (result == -1)
+        {
+            return -1;
+        }
+
+        if (result == 1)
+        {
+            if (paso == 3)
+            {
+                valido = diaValido(productos[contProductos].dia, productos[contProductos].mes, productos[contProductos].anio);
+                
+                if (valido == 0)
+                {
+                    printf("Fecha Inexistente.\n");
+                    paso = 1; // Volver al paso del día
+                    continue;
+                }
+            }
+            paso++;
+        }
+        else
+        {
+            printf("Dato invalido.\n");
+        }
+    }
+    return 1;
+}
+
+int diaValido(int day, int month, int year) 
+{
+    int bisiesto = 0;
+    //meses de 31 días
+    if (month == 1 || month == 3)
+    {
+        return (day <= 31);
+    }
+    if (month == 5 || month == 7)
+    {
+        return (day <= 31);
+    }
+    if (month == 8 || month == 10)
+    {
+        return (day <= 31);
+    }
+    if (month == 12)
+    {
+        return (day <= 31);
+    }
+    
+    //meses de 30 días
+    if (month == 4 || month == 6)
+    {
+        return (day <= 30);
+    }
+    if (month == 9 || month == 11)
+    {
+        return (day <= 30);
+    }
+    
+    //Febrero
+    if (month == 2)
+    {
+        if (year % 400 == 0)
+        {
+            bisiesto = 1;
+        }
+        else
+        {
+            bisiesto = 0;
+        }
+    }
+    
+    if (bisiesto == 1)
+    {
+        return (day <= 29);
+    }
+    return (day <= 28);
+
+    return 0;
+}
+
+int dia()
+{
+    printf("Dia: (DD) (-1 para salir): ");
+    scanf("%d", &productos[contProductos].dia);
+
+    if (salir(productos[contProductos].dia))
+    {
+        return -1;
+    }
+
+    //validación del día
+    if (productos[contProductos].dia < 1 || productos[contProductos].dia > 31)
+    {
+        printf("Dia invalido (1-31)\nIngrese el dia: ");
+        return 0;
+    }
+    //fin validación
+    return 1;
+}
+
+int mes()
+{
+    printf("Mes: (MM) (-1 para salir): ");
+    scanf("%d", &productos[contProductos].mes);
+
+    if (salir(productos[contProductos].mes))
+    {
+        return -1;
+    }
+
+    //validación del mes
+    if (productos[contProductos].mes < 1 || productos[contProductos].mes > 12) //tiene que agregar correctamente la fecha completa, si no no sale de este ciclo
+    {
+        printf("Mes invalido (1-12)\nIngrese el mes: ");
+        return 0;
+    }
+    //fin validación
+    return 1;
+}
+
+int anio()
+{
+    printf("Anio: (AAAA) (-1 para salir): ");
+    scanf("%d", &productos[contProductos].anio);
+
+    if (salir(productos[contProductos].anio))
+    {
+        return -1;
+    }
+
+    //validación del año
+    if (productos[contProductos].anio < 2000)
+    {
+        printf("Anio invalido (mayor o igual a 2000)\nIngrese el anio: ");
+        return 0;
+    }
+    //fin validación
     return 1;
 }
 
@@ -360,7 +487,7 @@ void leerProveedor()
         {
             if (proveedores[p].rif == auxProveedor)
             {
-                encontrarProveedor(p);//esta función muestra la información del proveedor encontrado y pregunta si desea seleccionarlo, si el usuario selecciona el proveedor, se guarda su información en el arreglo de productos para que aparezca en los reportes
+                encontrarProveedor(p);//muestra la información del proveedor encontrado
                 coincide++;
 
                 if (encontrado != 0)
@@ -608,29 +735,56 @@ int llenarPlantilla()
 void mostrarProducto()
 {
     int p;
-    if (activos == 0)
+    int estado;
+    int seleccion;
+    int encontradoLocal=0; //esta es local, nada que ver con la global
+
+    if (contProductos == 0)
     {
         productoNoHallado();//verificamos si el inventario está vacío antes de intentar mostrar los productos
         return;
     }
 
-    if (contProductos != 0)
+    do
     {
-        printf("==================== INVENTARIO ACTUAL ====================\n");
-        printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO");
-        printf("-----------------------------------------------------------\n");
-        for (p = 0; p < contProductos; p++) //mostrar la información de cada producto registrado en el inventario
+        printf("\n==================== REPORTE DE INVENTARIO ====================\n");
+        printf(" [ 1 ] Productos Activos (Disponibles)\n");
+        printf(" [ 2 ] Productos Inactivos (No disponibles)\n");
+        printf("-->");
+        scanf("%d", &seleccion);
+
+        if (salir(seleccion))
         {
-            if (productos[p].activo == 1)
-            {
-                printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- OPERADOR TERNIARIO: (productos[p].activo == 1) ? "Disponible" : "no disponible"
-                //utilizando un OPERADOR TERNARIO muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0
-            }
+            return;
         }
+
+        if (seleccion < 1 || seleccion > 2)
+        {
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+    }while (seleccion < 1 || seleccion > 2);
+
+    estado = (seleccion == 1) ? 1 : 0; //si la selección es 1, estado será 1 (productos activos), si la selección es 2, estado será 0 (productos inactivos)
+
+    printf("\n==================== INVENTARIO ====================\n");
+    printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO");
+    printf("-----------------------------------------------------------\n");
+
+    for (p = 0; p < contProductos; p++) //mostrar la información de cada producto registrado en el inventario
+    {
+        if (productos[p].activo == estado)
+        {
+            printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- OPERADOR TERNIARIO: (productos[p].activo == 1) ? "Disponible" : "no disponible"
+            //utilizando un OPERADOR TERNARIO muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0
+            encontradoLocal++;
+        }
+    }
+    if (encontrado == 0)
+    {
+        printf("No se encontraron productos en esta categoria.\n");
         printf("===========================================================\n");
     }
 }
-
 
 void eliminarProducto()
 {
