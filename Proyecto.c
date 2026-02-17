@@ -369,7 +369,8 @@ void mostrarProducto()
         {
             if (productos[p].activo == 1)
             {
-                printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0, utilizando un operador ternario para determinar qué texto mostrar en función del estado del producto
+                printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- OPERADOR TERNIARIO: (productos[p].activo == 1) ? "Disponible" : "no disponible"
+                //utilizando un OPERADOR TERNARIO muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0
             }
         }
         printf("===========================================================\n");
@@ -479,7 +480,7 @@ int consultar()
         printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
         printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
         printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Activo" : "Inactivo");
-        printf("--------------------------------------------------------------\n");
+        printf("------------------------------------------------------------\n");
     }
     else
     {
