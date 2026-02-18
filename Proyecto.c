@@ -760,7 +760,7 @@ int gestionFecha()
     int result;
     int valido;
 
-    while (paso <)
+    while (paso < 4)
     {
         switch (paso)
         {
@@ -951,9 +951,9 @@ int posibleProveedor(int p)
     printf("---------------------------------\n");
 
     printf("Desea seleccionar este proveedor?\n");
-    printf(" 1) Si\n");
-    printf(" 0) No\n");
-    printf("-1) Cancelar\n");
+    printf("[ 1 ] Si\n");
+    printf("[ 0 ] No\n");
+    printf("[-1 ] Cancelar\n");
     printf("-->");
     scanf("%d", &respuesta);
 
@@ -966,9 +966,9 @@ int posibleProveedor(int p)
     while(respuesta < -1 || respuesta > 1)
     {
         printf("Opcion invalida\n");
-        printf(" 1) para seleccionar\n");
-        printf(" 0) para no seleccionar\n");
-        printf("-1) para cancelar\n");
+        printf("[ 1 ] para seleccionar\n");
+        printf("[ 0 ] para no seleccionar\n");
+        printf("[-1 ] para cancelar\n");
         printf("-->");
         scanf("%d", &respuesta);	
     
@@ -1015,7 +1015,7 @@ void productoEncontrado(int idx)
     printf("\n>>> Precio: $%.2f <<<\n", productos[idx].precio);
     printf("\n>>> PRODUCTO ENCONTRADO <<<\n");
     printf("Desea eliminar este producto? \n");
-    printf(" 1) Si\n");
-    printf(" 0) No\n");
-    printf("-1) Cancelar\n");
+    printf("[ 1 ] Si\n");
+    printf("[ 0 ] No\n");
+    printf("[-1 ] Cancelar\n");
 }
