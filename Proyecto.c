@@ -31,7 +31,6 @@ struct Producto
     float tamano;
     int stock;
     float precio;
-    //int ubicacion;
     int dia;
     int mes;
     int anio;
@@ -59,12 +58,12 @@ struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 
 //--------FUNCIONES--------
 int salir(int valor);
-int encontrarIndice(int BuscarID);
+int encontrarID(int buscarID);
 void almacen();
 int menu();
 void productoNoHallado();
 void registrarProducto();
-int llenarPlantilla();
+int cancelarAccion();
 int leerCodigo();
 int leerNombre();
 int leerTamano();
@@ -73,7 +72,7 @@ float leerPrecio();
 int leerFechaIngreso();
 int gestionFecha();
 int dia();
-int diaValido(int day, int month, int year);//d = día, m = mes, a = año. Sencillo
+int diaValido(int day, int month, int year);//day = día, month = mes, year = año. Sencillo
 int mes();
 int anio();
 void leerProveedor();
@@ -83,6 +82,7 @@ void guardarProveedor(int p);
 int leerActivo();
 void agregarStock();
 void eliminarProducto();
+void productoEncontrado(int idx);
 void mostrarProducto();
 int consultarProducto();
 void retirarProducto();
@@ -95,32 +95,38 @@ int main()
 }
 
 //--------DESARROLLO DE FUNCIONES--------
-int salir(int valor)
+//RESULTADO
+void almacen()
 {
-    if (valor == -1)
+    int option;
+    do
     {
-        printf("\nAccion cancelada. Volviendo al menu\n");
-        return 1;
-    }
-    return 0;
-}
-
-/*[CENTRALIZACIÓN, EL PAPÁ DE LOS POLLITOS]
-  esta belleza hace un solo for y con eso 
-          se utiliza para todo*/
-int encontrarIndice(int BuscarID)
-{
-    int i;
-    for (i = 0; i < contProductos; i++)
-    {
-        if (productos[i].id == BuscarID && productos[i].activo == 1) // Verifica que el ID coincida y que el producto esté activo
+        option = menu();
+        switch (option)
         {
-            return i; // retorna la iteración del ciclo si hay producto encontrado
+        case 1:
+            registrarProducto();
+            break;
+        case 2:
+            mostrarProducto();
+            break;
+        case 3:
+            agregarStock();
+            break;
+        case 4:
+            eliminarProducto();
+            break;
+        case 5:
+            retirarProducto();
+            break;
+        case 6:
+            consultarProducto();
+            break;
         }
-    }
-    return -1; // retorna -1 si no encuentra un producto
+    } while (option != 7);
 }
 
+//OPCIONES DISPONIBLES DEL MENÚ
 int menu()
 {
     int option;//guarda la opción ingresada por el usuario
@@ -148,12 +154,363 @@ int menu()
     return option;
 }
 
+//FUNCIONES DEL MENÚ
+void registrarProducto()
+{
+    if (contProductos < MAX_PRODUCTOS)//no se podrán ingresar más datos si no se cumple esta condición
+    {
+        //PLANTILLA DEL PRODUCTO
+        if (cancelarAccion() == -1)
+        {
+            return;
+        }
+
+        leerActivo();
+
+        printf("\n===========================================================\n");
+        printf("             PRODUCTO REGISTRADO EXITOSAMENTE              \n");
+        printf("===========================================================\n");
+
+        contProductos++;
+        activos++;
+    }
+    else
+    {
+        printf("\nEl inventario esta lleno.\n");
+    }
+}
+
+void mostrarProducto()
+{
+    int p;
+    int estado;
+    int seleccion;
+    int encontradoLocal=0; //esta es local, nada que ver con la global
+
+    if (contProductos == 0)
+    {
+        productoNoHallado();//verificamos si el inventario está vacío antes de intentar mostrar los productos
+        return;
+    }
+
+    do
+    {
+        printf("\n===================REPORTE DE INVENTARIO===================\n");
+        printf(" [ 1 ] Productos Activos (Disponibles)\n");
+        printf(" [ 2 ] Productos Inactivos (No disponibles)\n");
+        printf(" [-1 ] Salir\n");
+        printf("-->");
+        scanf("%d", &seleccion);
+
+        if (salir(seleccion))
+        {
+            return;
+        }
+
+        if (seleccion < 1 || seleccion > 2)
+        {
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+    }while (seleccion < 1 || seleccion > 2);
+
+    estado = (seleccion == 1) ? 1 : 0; //si la selección es 1, estado será 1 (productos activos), si la selección es 2, estado será 0 (productos inactivos)
+
+    for (p = 0; p < contProductos; p++) //mostrar la información de cada producto registrado en el inventario
+    {
+        if (productos[p].activo == estado)
+        {
+            if (encontradoLocal == 0)
+            {
+                printf("\n=========================INVENTARIO========================\n");
+                printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO");
+                printf("-----------------------------------------------------------\n");
+            }
+            
+            printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- OPERADOR TERNIARIO: (productos[p].activo == 1) ? "Disponible" : "no disponible"
+            //utilizando un OPERADOR TERNARIO muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0
+            encontradoLocal++;
+        }
+    }
+
+    if (encontradoLocal == 0)
+    {
+        printf("===========================================================\n");
+        printf("No se encontraron productos en esta categoria.\n");
+        printf("===========================================================\n");
+    }
+}
+
+void agregarStock()
+{
+    int id;
+    int cantidad;
+    int idx;
+
+    if (contProductos == 0)
+    {
+        productoNoHallado();
+        return;
+    }
+    
+    printf("===========================================================\n");
+    printf("ID del producto a agregar stock (-1 para salir): ");
+    scanf("%d", &id);
+
+    if (salir(id))
+    {
+        return;
+    }
+
+    idx = encontrarID(id);
+
+    if (idx != -1)
+    {
+        printf("Producto %s\n", productos[idx].name);
+        printf("Stock actual: %d\n", productos[idx].stock);
+        printf("Cantidad a agregar (-1 para salir): ");
+        scanf("%d", &cantidad);
+
+        if (salir(cantidad))
+        {
+            return;
+        }
+
+        if (cantidad > 0)
+        {
+            if (productos[idx].stock == 0)
+            {
+                productos[idx].activo = 1;
+                activos++;
+            }
+
+            productos[idx].stock += cantidad;
+            printf("El producto ha sido reactivado.\n");
+            printf("Stock actualizado. Nuevo stock: %d\n", productos[idx].stock);
+        }
+        else
+        {
+            printf("Cantidad invalida.\n");
+        }
+    }
+    else
+    {
+        printf("Producto no encontrado.\n");
+    }
+}
+
+void eliminarProducto()
+{
+    int eliminarID;
+    int confirmacion;
+    encontrado=0; //como dije antes, al ser una variable global, aqui la reseteamos antes que nada
+    int terminado=0;
+
+    if (activos == 0)
+    {
+        productoNoHallado();
+        return;
+    }
+
+    while (terminado == 0)
+    {
+        printf("===========================================================\n");
+        printf("ID del producto a eliminar (-1 para salir): ");
+        scanf("%d", &eliminarID);
+
+        if (salir(eliminarID))
+        {
+            terminado = 1;
+            break;
+        }
+
+        int idx = encontrarID(eliminarID); // nuevamente, encontrarIndice() para obtener el índice del producto a eliminar
+        // Solo buscamos entre los que estan activos
+        if (idx != -1)
+        {
+            if (productos[idx].activo == 0)
+            {
+                printf("El producto ya fue eliminado.\n");
+            }
+            else
+            {
+                productoEncontrado(idx);
+                scanf("%d", &confirmacion);
+
+                if (salir(confirmacion))
+                {
+                    break;
+                }
+                
+                if (confirmacion == 1)
+                {
+                    productos[idx].activo = 0; // Marcamos el producto como inactivo
+                    activos--;
+                    printf("Producto con ID %d ha sido eliminado.\n", eliminarID);
+                    terminado = 1; // Salimos después de eliminar el producto
+                }
+                else
+                {
+                    printf("Eliminacion cancelada.\n");
+                }
+            }
+        }
+        else
+        {
+            printf("No se encontro el ID o ya fue eliminado.\n");
+        }
+    }
+}
+
+void retirarProducto() 
+{
+    int id;
+    int cantidad;
+    int terminado=0;
+
+    if (activos == 0)
+    {
+        productoNoHallado();
+        return;
+    }
+    while (terminado == 0)
+    {
+        printf("ID de producto a retirar (-1 para salir): ");
+        scanf("%d", &id);
+
+        if (salir(id))
+        {
+            break;
+        }
+
+        int idx = encontrarID(id); //emcontrarIndiceDeidad
+
+        if (idx != -1)
+        {
+            printf("Producto %s\n", productos[idx].name);
+            printf("Stock actual: %d\n", productos[idx].stock);
+            printf("Cantidad a retirar: ");
+            scanf("%d", &cantidad);
+
+            if (salir(cantidad))
+            {
+                break;
+            }
+
+            if (cantidad <= productos[idx].stock)
+            {
+                productos[idx].stock -= cantidad;
+                printf("Retiro exitoso. Stock restante: %d\n", productos[idx].stock);
+
+                if (productos[idx].stock == 0)
+                {
+                    productos[idx].activo = 0;
+                    activos--;
+                    printf("El producto se ha agotado y marcado como inactivo.\n");
+                }
+                terminado = 1; // Salimos después de realizar el retiro
+            }
+            else
+            {
+                printf("Error!\n");
+                printf("Stock insuficiente.\n");
+            }
+        }
+        else
+        {
+            printf("Producto no encontrado.\n");
+        }
+    }
+}
+
+int consultarProducto() 
+{
+    int id;
+    int terminado=0;
+
+    if (activos == 0)
+    {
+        productoNoHallado();
+        return -1;
+    }
+
+    while (terminado == 0)
+    {
+        printf("===========================================================\n");
+        printf("ID del producto a consultar (-1 para salir): ");
+        scanf("%d", &id);
+
+        if (salir(id))
+        {
+            return 0;
+        }
+
+        int idx = encontrarID(id); //Padre Indice
+
+        if (idx != -1)//si el producto existe y está activo, se muestra su información detallada
+        {
+            printf("\n------------------ DETALLES DEL PRODUCTO ------------------\n");
+            printf("\t\tID:                     %d\n", productos[idx].id);
+            printf("\t\tNombre:                 %s\n", productos[idx].name);
+            printf("\t\tTamano:                 %.2f gramos\n", productos[idx].tamano);
+            printf("\t\tStock:                  %d unidades\n", productos[idx].stock);
+            printf("\t\tPrecio:                 $%.2f\n", productos[idx].precio);
+            printf("\t\tFecha de ingreso:       %02d/%02d/%04d\n", productos[idx].dia, productos[idx].mes, productos[idx].anio);
+            printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
+            printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
+            printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
+            printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
+            printf("------------------------------------------------------------\n");
+            terminado = 1;
+        }
+        else//sino, tira este print
+        {
+            printf("Producto no encontrado.\n");
+        }
+    }
+    return id;
+}
+
+int salir(int valor)
+{
+    if (valor == -1)
+    {
+        printf("\nAccion cancelada. Volviendo al menu\n");
+        return 1;
+    }
+    return 0;
+}
+
+//CUALQUIER OPCIÓN DISTINTA DE INGRESAR, SIN HABER INGRESADO UN PRODUCTO
+void productoNoHallado()
+{
+    if (activos == 0)
+    {
+        printf("===========================================================\n");
+        printf("\nEl inventario esta vacio.\n\n");
+    }
+}
+
+//FOR CENTRALIZADO PARA TODO
+int encontrarID(int buscarID)
+{
+    int i;
+    for (i = 0; i < contProductos; i++)
+    {
+        if (productos[i].id == buscarID) // Verifica que el ID coincida y que el producto esté activo
+        {
+            return i; // retorna la iteración del ciclo si hay producto encontrado
+        }
+    }
+    return -1; // retorna -1 si no encuentra un producto
+}
+
+//INGRESAR PRODUCTO
 int leerCodigo()
 {
     int repetido;
 
     printf("====================REGISTRAR PRODUCTO=====================\n");
-    printf("ID (-1 Cancelar): ");
+    printf("ID (-1 para salir): ");
     scanf("%d", &auxCodigo); //<-auxiliar para validar
 
     if (salir(auxCodigo))//se escribe en cada opción seleccionada para que, en cualquier momento el usuario pueda salir
@@ -178,11 +535,11 @@ int leerCodigo()
         }
         //fin validación
 
-        /*utilizamos la función encontrarIndice() para verificar 
+        /*utilizamos la función buscarCualquierID para verificar 
         si el ID ingresado ya existe en el arreglo de productos,
         si la función retorna -1 significa que el ID ya 
         existe y se pide al usuario que ingrese otro ID*/
-        if(encontrarIndice(auxCodigo) != -1) 
+        if(encontrarID(auxCodigo) != -1) 
         {
             printf("El ID ya existe, ingrese otro ID: ");
             scanf("%d", &auxCodigo);
@@ -202,7 +559,7 @@ int leerCodigo()
 int leerNombre()
 {
     printf("Producto (-1 para salir): ");
-    scanf(" %s", productos[contProductos].name);
+    scanf(" %19s", productos[contProductos].name);
 
     if (productos[contProductos].name[0] == '-' && productos[contProductos].name[1] == '1')
     {
@@ -302,13 +659,108 @@ int leerFechaIngreso()
     return 1;//si to' salió bien
 }
 
+void leerProveedor()
+{
+    int p;
+    int coincide;
+
+    do
+    {
+        encontrado = 0; //al ser una variable global, aqui la reseteamos antes que nada
+        coincide = 0;
+
+        printf("Opciones de RIF: \nRIF-123456789\nRIF-987654321\nRIF-123459876 \nRIF del proveedor (-1 para salir): RIF-");
+        scanf("%d", &auxProveedor);
+
+        if (salir(auxProveedor))
+        {
+            encontrado = -1;
+            return;
+        }
+
+        for (p = 0; p < MAX_PROVEEDORES; p++)
+        {
+            if (proveedores[p].rif == auxProveedor)
+            {
+                encontrarProveedor(p);//muestra la información del proveedor encontrado
+                coincide++;
+
+                if (encontrado != 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (coincide == 0 && encontrado == 0)
+        {
+            printf("RIF no encontrado, intente de nuevo.\n");
+        }
+        
+    } while (encontrado == 0);
+}
+
+int leerActivo()
+{
+    //si el stock es mayor a 0, automáticamente pasa a estar disponible
+    if (productos[contProductos].stock > 0)
+    {
+        productos[contProductos].activo = 1;
+        return 1;
+    }
+    else
+    {
+        productos[contProductos].activo = 0;
+        return 0;
+    }
+}
+
+//SI EN CUALQUIER MOMENTO DESEA CANCELAR LA ACCIÓN
+int cancelarAccion()
+{
+    if (leerCodigo() == -1)
+    {
+        return -1;
+    }
+    if (leerNombre() == -1)
+    {
+        return -1;
+    }
+    if (leerTamano() == -1)
+    {
+        return -1;
+    }
+    if (leerStock() == -1)
+    {
+        return -1;
+    }
+    if (leerPrecio() == -1)
+    {
+        return -1;
+    }
+    if (leerFechaIngreso() == -1)
+    {
+        return -1;
+    }
+
+    leerProveedor();
+
+    if (encontrado == -1)
+    {
+        return -1;
+    }
+
+    return 1;
+}
+
+//FUNCIONES AUXILIARES PARA leerFechaIngreso()
 int gestionFecha()
 {
     int paso = 1; //1=dia, 2=mes, 3=año
     int result;
     int valido;
 
-    while (paso <= 3)
+    while (paso <)
     {
         switch (paso)
         {
@@ -385,13 +837,18 @@ int diaValido(int day, int month, int year)
     //Febrero
     if (month == 2)
     {
-        if (year % 400 == 0)
+        bisiesto = 0;
+
+        if (year % 4 == 0)
         {
-            bisiesto = 1;
-        }
-        else
-        {
-            bisiesto = 0;
+            if (year % 100 != 0)
+            {
+                bisiesto = 1;
+            }
+            else if (year % 400 == 0)
+            {
+                bisiesto = 1;
+            }
         }
     }
     
@@ -464,46 +921,7 @@ int anio()
     return 1;
 }
 
-void leerProveedor()
-{
-    int p;
-    int coincide;
-
-    do
-    {
-        encontrado = 0; //al ser una variable global, aqui la reseteamos antes que nada
-        coincide = 0;
-
-        printf("RIF del proveedor (-1 para salir): ");
-        scanf("%d", &auxProveedor);
-
-        if (salir(auxProveedor))
-        {
-            encontrado = -1;
-            return;
-        }
-
-        for (p = 0; p < MAX_PROVEEDORES; p++)
-        {
-            if (proveedores[p].rif == auxProveedor)
-            {
-                encontrarProveedor(p);//muestra la información del proveedor encontrado
-                coincide++;
-
-                if (encontrado != 0)
-                {
-                    break;
-                }
-            }
-        }
-
-        if (coincide == 0 && encontrado == 0)
-        {
-            printf("RIF no encontrado, intente de nuevo.\n");
-        }
-        
-    } while (encontrado == 0);
-}
+//FUNCIONES AUXILIARES PARA leerProveedor()
 
 void encontrarProveedor(int p)
 {
@@ -526,11 +944,11 @@ void encontrarProveedor(int p)
 int posibleProveedor(int p)
 {
     int respuesta;
-    printf("\n--- INFORMACION DEL PROVEEDOR ---\n");
+    printf("\n----INFORMACION DEL PROVEEDOR----\n");
     printf("RIF: %d\n", proveedores[p].rif);
     printf("Nombre: %s\n", proveedores[p].nombre);
     printf("Codigo: %s\n", proveedores[p].codigo);
-    printf("----------------------------------\n");
+    printf("---------------------------------\n");
 
     printf("Desea seleccionar este proveedor?\n");
     printf(" 1) Si\n");
@@ -589,409 +1007,15 @@ void guardarProveedor(int p)
     //FIN CODIGO
 }
 
-int leerActivo()
+void productoEncontrado(int idx)
 {
-    //si el stock es mayor a 0, automáticamente pasa a estar disponible
-    if (productos[contProductos].stock > 0)
-    {
-        productos[contProductos].activo = 1;
-        return 1;
-    }
-    else
-    {
-        productos[contProductos].activo = 0;
-        return 0;
-    }
-}
-
-void registrarProducto()
-{
-    if (contProductos < MAX_PRODUCTOS)//no se podrán ingresar más datos si no se cumple esta condición
-    {
-        //PLANTILLA DEL PRODUCTO
-        if (llenarPlantilla() == -1)
-        {
-            return;
-        }
-
-        leerActivo();
-
-        printf("\n==========================================\n");
-        printf("   PRODUCTO REGISTRADO EXITOSAMENTE\n");
-        printf("==========================================\n");
-
-        contProductos++;
-        activos++;
-    }
-    else
-    {
-        printf("\nEl inventario esta lleno.\n");
-    }
-}
-
-void agregarStock()
-{
-    int id;
-    int cantidad;
-    int idx;
-    int s;
-
-    if (contProductos == 0)
-    {
-        productoNoHallado();
-        return;
-    }
-    
-    printf("ID del producto a agregar stock (-1 para salir): ");
-    scanf("%d", &id);
-
-    if (salir(id))
-    {
-        return;
-    }
-
-    idx = -1;
-    for (s = 0; s < contProductos; s++)
-    {
-        if (productos[s].id == id)
-        {
-            idx = s;
-            break;
-        }
-    }
-
-    if (idx != -1)
-    {
-        printf("Producto %s\n", productos[idx].name);
-        printf("Stock actual: %d\n", productos[idx].stock);
-        printf("Cantidad a agregar (-1 para salir): ");
-        scanf("%d", &cantidad);
-
-        if (salir(cantidad))
-        {
-            return;
-        }
-
-        if (cantidad > 0)
-        {
-            if (productos[idx].stock == 0)
-            {
-                productos[idx].activo = 1;
-                activos++;
-            }
-
-            productos[idx].stock += cantidad;
-            printf("El producto ha sido reactivado.\n");
-            printf("Stock actualizado. Nuevo stock: %d\n", productos[idx].stock);
-        }
-        else
-        {
-            printf("Cantidad invalida.\n");
-        }
-    }
-    else
-    {
-        printf("Producto no encontrado.\n");
-    }
-}
-
-int llenarPlantilla()
-{
-    if (leerCodigo() == -1)
-    {
-        return -1;
-    }
-    if (leerNombre() == -1)
-    {
-        return -1;
-    }
-    if (leerTamano() == -1)
-    {
-        return -1;
-    }
-    if (leerStock() == -1)
-    {
-        return -1;
-    }
-    if (leerPrecio() == -1)
-    {
-        return -1;
-    }
-    if (leerFechaIngreso() == -1)
-    {
-        return -1;
-    }
-
-    leerProveedor();
-
-    if (encontrado == -1)
-    {
-        return -1;
-    }
-
-    return 1;
-}
-
-void mostrarProducto()
-{
-    int p;
-    int estado;
-    int seleccion;
-    int encontradoLocal=0; //esta es local, nada que ver con la global
-
-    if (contProductos == 0)
-    {
-        productoNoHallado();//verificamos si el inventario está vacío antes de intentar mostrar los productos
-        return;
-    }
-
-    do
-    {
-        printf("\n==================== REPORTE DE INVENTARIO ====================\n");
-        printf(" [ 1 ] Productos Activos (Disponibles)\n");
-        printf(" [ 2 ] Productos Inactivos (No disponibles)\n");
-        printf("-->");
-        scanf("%d", &seleccion);
-
-        if (salir(seleccion))
-        {
-            return;
-        }
-
-        if (seleccion < 1 || seleccion > 2)
-        {
-            printf("Opcion invalida. Intente nuevamente.\n");
-        }
-    }while (seleccion < 1 || seleccion > 2);
-
-    estado = (seleccion == 1) ? 1 : 0; //si la selección es 1, estado será 1 (productos activos), si la selección es 2, estado será 0 (productos inactivos)
-
-    printf("\n==================== INVENTARIO ====================\n");
-    printf("%-5s %-15s %-10s %-10s %-8s\n", "ID", "NOMBRE", "PRECIO", "STOCK", "ESTADO");
-    printf("-----------------------------------------------------------\n");
-
-    for (p = 0; p < contProductos; p++) //mostrar la información de cada producto registrado en el inventario
-    {
-        if (productos[p].activo == estado)
-        {
-            printf("%-5d %-15s $%-10.2f %-10d %-8s\n", productos[p].id, productos[p].name, productos[p].precio, productos[p].stock, (productos[p].activo == 1) ? "Disponible" : "no disponible"); //<- OPERADOR TERNIARIO: (productos[p].activo == 1) ? "Disponible" : "no disponible"
-            //utilizando un OPERADOR TERNARIO muestra "Disponible" si el valor de activo es 1 y "no disponible" si el valor de activo es 0
-            encontradoLocal++;
-        }
-    }
-    if (encontrado == 0)
-    {
-        printf("No se encontraron productos en esta categoria.\n");
-        printf("===========================================================\n");
-    }
-}
-
-void eliminarProducto()
-{
-    int eliminarID;
-    int confirmacion;
-    encontrado=0; //como dije antes, al ser una variable global, aqui la reseteamos antes que nada
-    int termiando=0;
-
-    if (activos == 0)
-    {
-        productoNoHallado();
-        return;
-    }
-
-    while (termiando == 0)
-    {
-        printf("ID del producto a eliminar (-1 para salir): ");
-        scanf("%d", &eliminarID);
-
-        if (salir(eliminarID) == -1)
-        {
-            break;
-        }
-
-        int idx = encontrarIndice(eliminarID); // nuevamente, encontrarIndice() para obtener el índice del producto a eliminar
-        // Solo buscamos entre los que estan activos
-        if (idx != -1)
-        {
-            printf("\n>>> PRODUCTO ENCONTRADO <<<\n");
-            printf("\n>>> Producto: %s <<<\n", productos[idx].name);
-            printf("\n>>> Stock: %d <<<\n", productos[idx].stock);
-            printf("\n>>> Precio: $%.2f <<<\n", productos[idx].precio);
-            printf("\n>>> PRODUCTO ENCONTRADO <<<\n");
-            printf("Desea eliminar este producto? \n");
-            printf(" 1) Si\n");
-            printf(" 0) No\n");
-            printf("-1) Cancelar\n");
-            scanf("%d", &confirmacion);
-
-            if (salir(confirmacion))
-            {
-                break;
-            }
-            
-            if (confirmacion == 1)
-            {
-                productos[idx].activo = 0; // Marcamos el producto como inactivo
-                activos--;
-                printf("Producto con ID %d ha sido eliminado.\n", eliminarID);
-                termiando = 1; // Salimos después de eliminar el producto
-            }
-            else
-            {
-                printf("Eliminacion cancelada.\n");
-            }
-        }
-        else
-        {
-            printf("No se encontro el ID o ya fue eliminado.\n");
-        }
-    }
-}
-
-void retirarProducto() 
-{
-    int id;
-    int cantidad;
-    int terminado=0;
-
-    if (activos == 0)
-    {
-        productoNoHallado();
-        return;
-    }
-    while (terminado == 0)
-    {
-        printf("ID de producto a retirar (-1 para salir): ");
-        scanf("%d", &id);
-
-        if (salir(id))
-        {
-            break;
-        }
-
-        int idx = encontrarIndice(id); //emcontrarIndiceDeidad
-
-        if (idx != -1)
-        {
-            printf("Producto %s\n", productos[idx].name);
-            printf("Stock actual: %d\n", productos[idx].stock);
-            printf("Cantidad a retirar: ");
-            scanf("%d", &cantidad);
-
-            if (salir(cantidad))
-            {
-                break;
-            }
-
-            if (cantidad <= productos[idx].stock)
-            {
-                productos[idx].stock -= cantidad;
-                printf("Retiro exitoso. Stock restante: %d\n", productos[idx].stock);
-
-                if (productos[idx].stock == 0)
-                {
-                    productos[idx].activo = 0;
-                    activos--;
-                    printf("El producto se ha agotado y marcado como inactivo.\n");
-                }
-                terminado = 1; // Salimos después de realizar el retiro
-            }
-            else
-            {
-                ; // Si el stock es 0, marcamos el producto como inactivo
-                printf("Error!\n");
-                printf("Stock insuficiente.\n");
-            }
-        }
-        else
-        {
-            printf("Producto no encontrado.\n");
-        }
-    }
-}
-
-int consultarProducto() 
-{
-    int id;
-    int terminado=0;
-
-    if (activos == 0)
-    {
-        productoNoHallado();
-        return -1;
-    }
-
-    while (terminado == 0)
-    {
-        printf("ID del producto a consultar (-1 para salir): ");
-        scanf("%d", &id);
-
-        if (salir(id))
-        {
-            return 0;
-        }
-
-        int idx = encontrarIndice(id); //Padre Indice
-
-        if (idx != -1)//si el producto existe y está activo, se muestra su información detallada
-        {
-            printf("\n------------------ DETALLES DEL PRODUCTO ------------------\n");
-            printf("\t\tID:                     %d\n", productos[idx].id);
-            printf("\t\tNombre:                 %s\n", productos[idx].name);
-            printf("\t\tTamano:                 %.2f gramos\n", productos[idx].tamano);
-            printf("\t\tStock:                  %d unidades\n", productos[idx].stock);
-            printf("\t\tPrecio:                 $%.2f\n", productos[idx].precio);
-            printf("\t\tFecha de ingreso:       %02d/%02d/%04d\n", productos[idx].dia, productos[idx].mes, productos[idx].anio);
-            printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
-            printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
-            printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
-            printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
-            printf("------------------------------------------------------------\n");
-            terminado = 1;
-        }
-        else//sino, tira este print
-        {
-            printf("Producto no encontrado.\n");
-        }
-    }
-    return id;
-}
-
-void productoNoHallado()
-{
-    if (activos == 0)
-    {
-        printf("===========================================================\n");
-        printf("\nEl inventario esta vacio.\n\n");
-    }
-}
-
-void almacen()
-{
-    int option;
-    do
-    {
-        option = menu();
-        switch (option)
-        {
-        case 1:
-            registrarProducto();
-            break;
-        case 2:
-            mostrarProducto();
-            break;
-        case 3:
-            agregarStock();
-            break;
-        case 4:
-            eliminarProducto();
-            break;
-        case 5:
-            retirarProducto();
-            break;
-        case 6:
-            consultarProducto();
-            break;
-        }
-    } while (option != 7);
+    printf("\n>>> PRODUCTO ENCONTRADO <<<\n");
+    printf("\n>>> Producto: %s <<<\n", productos[idx].name);
+    printf("\n>>> Stock: %d <<<\n", productos[idx].stock);
+    printf("\n>>> Precio: $%.2f <<<\n", productos[idx].precio);
+    printf("\n>>> PRODUCTO ENCONTRADO <<<\n");
+    printf("Desea eliminar este producto? \n");
+    printf(" 1) Si\n");
+    printf(" 0) No\n");
+    printf("-1) Cancelar\n");
 }
