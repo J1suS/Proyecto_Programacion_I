@@ -15,6 +15,7 @@ float auxPrecio;
 float auxTamano;
 int auxCantidad;
 int auxProveedor;
+int auxRif;
 int auxActivo;
 
 int encontrado=0;
@@ -54,6 +55,7 @@ struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 //--------FUNCIONES--------
 int salir(int valor);
 int encontrarID(int buscarID);
+int encontrarRIF(int buscarRIF);
 void almacen();
 int menuPrincipal();
 int menu();
@@ -154,7 +156,7 @@ int menuPrincipal()
 
         if (opcionPrincipal < 1 || opcionPrincipal > 3)
         {
-            printf("Opcion invalida.\n");
+            printf("\nOpcion invalida, intente de nuevo.\n");
         }
         
     } while (opcionPrincipal != 3);
@@ -203,19 +205,21 @@ void gestionProveedores()
             if (hay == 1)
             {
                 printf("-----PROVEEDORES REGISTRADOS-----\n");
+                printf("%-16s %-30s\n", "RIF", "NOMBRE");
+                printf("---------------------------------\n");
                 for (g = 0; g < MAX_PROVEEDORES; g++)
                 {
                     if (proveedores[g].rif != 0)
                     {
-                        printf("RIF-%-12d (%-30s)\n", proveedores[g].rif, proveedores[g].nombre);
+                        printf("RIF-%-12d %-30s\n", proveedores[g].rif, proveedores[g].nombre);
                     }
                 }
-                printf("---------------------------------");
+                printf("---------------------------------\n");
             }
             else
             {
                 printf("===========================================================\n");
-                printf("\nNo hay proveedores registrados.\n");
+                printf("\nNo hay proveedores registrados.\n\n");
             }
                 
             
@@ -250,12 +254,36 @@ void registroProveedor()
     
     if (posEncontrado != -1)
     {
-        printf("\n--- NUEVO PROVEEDOR ---\n");
-        printf("Nombre: ");
-        scanf(" %49s", proveedores[posEncontrado].nombre);
-        printf("RIF: ");
-        scanf("%d", &proveedores[posEncontrado].rif);
-        printf("Proveedor registrado correctamente.\n");
+        do
+        {
+            printf("\n--- NUEVO PROVEEDOR ---\n");
+            printf("Nombre: ");
+            scanf(" %s", proveedores[posEncontrado].nombre);
+
+            printf("RIF (0 para cancelar): RIF-");
+            scanf("%d", &auxRif);
+
+            if (salir(auxRif))
+            {
+                return;
+            }
+
+            if (auxRif < 0)
+            {
+                printf("RIF invalido, intente otra vez.\n");
+                continue;
+            }
+
+            if (encontrarRIF(auxRif) != -1)
+            {
+                printf("RIF ya registrado.\n");
+            }
+            else
+            {
+                proveedores[posEncontrado].rif = auxRif;
+                printf("Proveedor registrado correctamente.\n");
+            }
+        } while (auxRif < 0);
     }
     else
     {
@@ -695,6 +723,19 @@ int encontrarID(int buscarID)
         }
     }
     return -1; // retorna -1 si no encuentra un producto
+}
+
+int encontrarRIF(int buscarRIF)
+{
+    int i;
+    for (i = 0; i < MAX_PROVEEDORES; i++)
+    {
+        if (proveedores[i].rif != 0 && proveedores[i].rif == buscarRIF)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 //INGRESAR PRODUCTO
