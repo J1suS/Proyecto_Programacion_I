@@ -35,9 +35,6 @@ struct Producto
     int dia;
     int mes;
     int anio;
-    char nombreProveedor[50];
-    int rifProveedor;
-    char codigoProveedor[4];
     int activo;
 };
 
@@ -307,11 +304,11 @@ int menu()
         printf("===========================================================\n");
         scanf("%d", &option);
 
-        if (option < 1 || option > 3)//valida que la opción ingresada esté dentro del rango permitido
+        if (option < 0 || option > 3)//valida que la opción ingresada esté dentro del rango permitido
         {
             printf("\nOpcion invalida, intente de nuevo.\n");
         }
-    }while (option < 1 || option > 3);
+    }while (option < 0 || option > 3);
     return option;
 }
 
@@ -319,7 +316,7 @@ void gestionConsultar()
 {
     int subOpcion;
 
-    if (activos == 0)
+    if (contProductos == 0)
     {
         productoNoHallado();
         return;
@@ -488,9 +485,8 @@ int consultarProducto()
             printf("\t\tStock:                  %d unidades\n", productos[idx].stock);
             printf("\t\tPrecio:                 $%.2f\n", productos[idx].precio);
             printf("\t\tFecha de ingreso:       %02d/%02d/%04d\n", productos[idx].dia, productos[idx].mes, productos[idx].anio);
-            printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
-            printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
-            printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
+            printf("\t\tProveedor:              %s\n", proveedores[idx].nombre);
+            printf("\t\tRIF del proveedor:      %d\n", proveedores[idx].rif);
             printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
             printf("-----------------------------------------------------------\n");
             terminado = 1;
