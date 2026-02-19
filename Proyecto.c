@@ -3,7 +3,7 @@
 
 
 //--------CONSTANTES--------
-#define MAX_PROVEEDORES 3
+#define MAX_PROVEEDORES 5
 #define MAX_PRODUCTOS 10
 
 
@@ -44,14 +44,9 @@ struct Proveedor
 {
     int rif;
     char nombre[50];
-    char codigo[4];
 };
 
-struct Proveedor proveedores[MAX_PROVEEDORES] = { 
-    {123456789, "Distribuidora 1", "ABC"},
-    {987654321, "Distribuidora 2", "XYZ"},
-    {123459876, "Distribuidora 3", "DEF"}
-};
+struct Proveedor proveedores[MAX_PROVEEDORES]; //donde se guarda la info del proveedor
 
 struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 
@@ -60,8 +55,12 @@ struct Producto productos[MAX_PRODUCTOS]; //donde se guarda la info
 int salir(int valor);
 int encontrarID(int buscarID);
 void almacen();
+int menuPrincipal();
 int menu();
+void gestionConsultar();
+void gestionProveedores();
 void productoNoHallado();
+void registroProveedor();
 void registrarProducto();
 int cancelarAccion();
 int leerCodigo();
@@ -78,19 +77,19 @@ int anio();
 void leerProveedor();
 int posibleProveedor(int p);
 void encontrarProveedor(int p);
-void guardarProveedor(int p);
 int leerActivo();
 void agregarStock();
 void eliminarProducto();
 void productoEncontrado(int idx);
 void mostrarProducto();
+void gestionConsultar();
 int consultarProducto();
 void retirarProducto();
 
 //--------CODIGO PRINCIPAL--------
 int main()
 {
-    almacen();
+    menuPrincipal();
     return 0;
 }
 
@@ -111,22 +110,159 @@ void almacen()
             mostrarProducto();
             break;
         case 3:
-            agregarStock();
+            gestionConsultar();
             break;
-        case 4:
-            eliminarProducto();
-            break;
-        case 5:
-            retirarProducto();
-            break;
-        case 6:
-            consultarProducto();
+        case 0:
             break;
         }
-    } while (option != 7);
+    } while (option != 0);
 }
 
 //OPCIONES DISPONIBLES DEL MENÚ
+int menuPrincipal()
+{
+    int opcionPrincipal;
+
+    for (int b = 0; b < MAX_PROVEEDORES; b++)
+    {
+        proveedores[b].rif = 0;
+    }
+
+    do
+    {
+        printf("===========================================================\n");
+        printf("                SISTEMA GESTION CAFE\n");
+        printf("===========================================================\n");
+        printf("[ 1 ] Proveedores\n");
+        printf("[ 2 ] Almacen\n");
+        printf("[ 3 ] Salir\n");
+        printf("===========================================================\n");
+        scanf("%d", &opcionPrincipal);
+
+        switch (opcionPrincipal)
+        {
+        case 1:
+            gestionProveedores();
+            break;
+        case 2:
+            almacen();
+            break;
+        case 3:
+            printf("Saliendo del Sistema...\n");
+            break;
+        }
+
+        if (opcionPrincipal < 1 || opcionPrincipal > 3)
+        {
+            printf("Opcion invalida.\n");
+        }
+        
+    } while (opcionPrincipal != 3);
+    return 0;
+}
+
+void gestionProveedores()
+{
+    int hay=0;
+    int subOpcion;
+    int g;
+
+    do
+    {
+        printf("===========================================================\n");
+        printf("                GESTION DE PROVEEDORES\n");
+        printf("===========================================================\n");
+        printf("[ 1 ] Agregar\n");
+        printf("[ 2 ] Mostrar\n");
+        printf("[ 0 ] Regresar\n");
+        printf("===========================================================\n");
+        scanf("%d", &subOpcion);
+
+        if (salir(subOpcion))
+        {
+            return;
+        }
+        
+        switch (subOpcion)
+        {
+        case 1:
+            registroProveedor();
+            break;
+        case 2:
+            
+            hay = 0;
+            for (g = 0; g < MAX_PROVEEDORES; g++)
+            {
+                if (proveedores[g].rif != 0)
+                {
+                    hay = 1;
+                    break;
+                }
+            }
+
+            if (hay == 1)
+            {
+                printf("-----PROVEEDORES REGISTRADOS-----\n");
+                for (g = 0; g < MAX_PROVEEDORES; g++)
+                {
+                    if (proveedores[g].rif != 0)
+                    {
+                        printf("RIF-%-12d (%-30s)\n", proveedores[g].rif, proveedores[g].nombre);
+                    }
+                }
+                printf("---------------------------------");
+            }
+            else
+            {
+                printf("===========================================================\n");
+                printf("\nNo hay proveedores registrados.\n");
+            }
+                
+            
+            
+            break;
+        }
+
+        if (subOpcion < 0 || subOpcion > 2)
+        {
+            printf("Opcion invalida.\n");
+        }
+        
+
+
+    } while (subOpcion != 0);
+    
+}
+
+void registroProveedor()
+{
+    int r;
+    int posEncontrado = -1;
+
+    for (r = 0; r < MAX_PROVEEDORES; r++)
+    {
+        if (proveedores[r].rif == 0)
+        {
+            posEncontrado = r;
+            break;
+        }
+    }
+    
+    if (posEncontrado != -1)
+    {
+        printf("\n--- NUEVO PROVEEDOR ---\n");
+        printf("Nombre: ");
+        scanf(" %49s", proveedores[posEncontrado].nombre);
+        printf("RIF: ");
+        scanf("%d", &proveedores[posEncontrado].rif);
+        printf("Proveedor registrado correctamente.\n");
+    }
+    else
+    {
+        printf("\nLimite de proveedores alcanzado.\n");
+    }
+}
+
 int menu()
 {
     int option;//guarda la opción ingresada por el usuario
@@ -138,20 +274,64 @@ int menu()
         printf("===========================================================\n");
         printf("[ 1 ] Ingresar\n");
         printf("[ 2 ] Mostrar\n");
-        printf("[ 3 ] Agregar\n");
-        printf("[ 4 ] Eliminar\n");
-        printf("[ 5 ] Retirar\n");
-        printf("[ 6 ] Consultar\n");
-        printf("[ 7 ] Salir\n");
+        printf("[ 3 ] Consultar\n");
+        printf("[ 0 ] Regresar\n");
         printf("===========================================================\n");
         scanf("%d", &option);
 
-        if (option < 1 || option > 7)//valida que la opción ingresada esté dentro del rango permitido
+        if (option < 1 || option > 3)//valida que la opción ingresada esté dentro del rango permitido
         {
             printf("\nOpcion invalida, intente de nuevo.\n");
         }
-    }while (option < 1 || option > 7);
+    }while (option < 1 || option > 3);
     return option;
+}
+
+void gestionConsultar()
+{
+    int subOpcion;
+
+    if (activos == 0)
+    {
+        productoNoHallado();
+        return;
+    }
+
+    do
+    {
+        printf("===================CONSULTA DE PRODUCTO====================\n");
+        printf("[ 1 ] Buscar\n");
+        printf("[ 2 ] Agregar\n");
+        printf("[ 3 ] Retirar\n");
+        printf("[ 4 ] Eliminar\n");
+        printf("[ 0 ] Cancelar\n");
+        printf("===========================================================\n");
+        scanf("%d", &subOpcion);
+
+        switch (subOpcion)
+        {
+        case 1:
+            consultarProducto();
+            break;
+        case 2:
+            agregarStock();
+            break;
+        case 3:
+            retirarProducto();
+            break;
+        case 4:
+            eliminarProducto();
+            break;
+        case 0:
+            printf("Volviendo al menu principal...\n");
+            break;
+        }
+
+        if (subOpcion < 0 || subOpcion > 4)//valida que la opción ingresada esté dentro del rango permitido
+        {
+            printf("\nOpcion invalida, intente de nuevo.\n");
+        }
+    } while (subOpcion < 0 || subOpcion > 4);
 }
 
 //FUNCIONES DEL MENÚ
@@ -160,7 +340,7 @@ void registrarProducto()
     if (contProductos < MAX_PRODUCTOS)//no se podrán ingresar más datos si no se cumple esta condición
     {
         //PLANTILLA DEL PRODUCTO
-        if (cancelarAccion() == -1)
+        if (cancelarAccion() == 0)
         {
             return;
         }
@@ -168,7 +348,7 @@ void registrarProducto()
         leerActivo();
 
         printf("\n===========================================================\n");
-        printf("             PRODUCTO REGISTRADO EXITOSAMENTE              \n");
+        printf("             PRODUCTO REGISTRADO EXITOSAMENTE\n");
         printf("===========================================================\n\n");
 
         contProductos++;
@@ -198,7 +378,7 @@ void mostrarProducto()
         printf("===================REPORTE DE INVENTARIO===================\n");
         printf(" [ 1 ] Productos Activos (Disponibles)\n");
         printf(" [ 2 ] Productos Inactivos (No disponibles)\n");
-        printf(" [-1 ] Cancelar\n");
+        printf(" [ 0 ] Cancelar\n");
         printf("-->");
         scanf("%d", &seleccion);
 
@@ -241,6 +421,61 @@ void mostrarProducto()
     }
 }
 
+int consultarProducto() 
+{
+    int id;
+    int terminado=0;
+
+    if (activos == 0)
+    {
+        productoNoHallado();
+        return 0;
+    }
+
+    while (terminado == 0)
+    {
+        printf("===================CONSULTAR PRODUCTO======================\n");
+        printf("[ 1 ] Buscar\n");
+        printf("[ 2 ] Agregar\n");
+        printf("[ 3 ] Eliminar\n");
+        printf("[ 4 ] Retirar\n");
+        printf("[ 0 ] Cancelar\n");
+
+        printf("ID del producto a consultar (0 para cancelar): ");
+        scanf("%d", &id);
+
+        if (salir(id))
+        {
+            return 0;
+        }
+
+        int idx = encontrarID(id); //Padre Indice
+
+        if (idx != -1)//si el producto existe y está activo, se muestra su información detallada
+        {
+            printf("\n-------------------DETALLES DEL PRODUCTO-------------------\n");
+            printf("\t\tID:                     %d\n", productos[idx].id);
+            printf("\t\tNombre:                 %s\n", productos[idx].name);
+            printf("\t\tTamano:                 %.2f gramos\n", productos[idx].tamano);
+            printf("\t\tStock:                  %d unidades\n", productos[idx].stock);
+            printf("\t\tPrecio:                 $%.2f\n", productos[idx].precio);
+            printf("\t\tFecha de ingreso:       %02d/%02d/%04d\n", productos[idx].dia, productos[idx].mes, productos[idx].anio);
+            printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
+            printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
+            printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
+            printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
+            printf("-----------------------------------------------------------\n");
+            terminado = 1;
+        }
+        else//sino, tira este print
+        {
+            printf("Producto no encontrado.\n");
+        }
+    }
+    return id;
+}
+
+//FUNCIONES DE CONSULTAR
 void agregarStock()
 {
     int id;
@@ -254,7 +489,7 @@ void agregarStock()
     }
     
     printf("===================AGREGAR UNIDADES========================\n");
-    printf("ID del producto a agregar stock (-1 para cancelar): ");
+    printf("ID del producto a agregar stock (0 para cancelar): ");
     scanf("%d", &id);
 
     if (salir(id))
@@ -269,7 +504,7 @@ void agregarStock()
         printf("===========================================================\n");
         printf("Producto %s\n", productos[idx].name);
         printf("Stock actual: %d\n", productos[idx].stock);
-        printf("Cantidad a agregar (-1 para cancelar): ");
+        printf("Cantidad a agregar (0 para cancelar): ");
         scanf("%d", &cantidad);
 
         if (salir(cantidad))
@@ -316,7 +551,7 @@ void eliminarProducto()
     while (terminado == 0)
     {
         printf("===================ELIMINAR PRODUCTO=======================\n");
-        printf("ID del producto a eliminar (-1 para cancelar): ");
+        printf("ID del producto a eliminar (0 para cancelar): ");
         scanf("%d", &eliminarID);
 
         if (salir(eliminarID))
@@ -374,15 +609,16 @@ void retirarProducto()
         productoNoHallado();
         return;
     }
+
     while (terminado == 0)
     {
         printf("====================RETIRAR PRODUCTO=======================\n");
-        printf("ID de producto a retirar (-1 para cancelar): ");
+        printf("ID de producto a retirar (0 para cancelar): ");
         scanf("%d", &id);
 
         if (salir(id))
         {
-            break;
+            return;
         }
 
         int idx = encontrarID(id); //emcontrarIndiceDeidad
@@ -396,7 +632,7 @@ void retirarProducto()
 
             if (salir(cantidad))
             {
-                break;
+                return;
             }
 
             if (cantidad <= productos[idx].stock)
@@ -425,57 +661,10 @@ void retirarProducto()
     }
 }
 
-int consultarProducto() 
-{
-    int id;
-    int terminado=0;
-
-    if (activos == 0)
-    {
-        productoNoHallado();
-        return -1;
-    }
-
-    while (terminado == 0)
-    {
-        printf("===================CONSULTAR PRODUCTO======================\n");
-        printf("ID del producto a consultar (-1 para cancelar): ");
-        scanf("%d", &id);
-
-        if (salir(id))
-        {
-            return 0;
-        }
-
-        int idx = encontrarID(id); //Padre Indice
-
-        if (idx != -1)//si el producto existe y está activo, se muestra su información detallada
-        {
-            printf("\n-------------------DETALLES DEL PRODUCTO-------------------\n");
-            printf("\t\tID:                     %d\n", productos[idx].id);
-            printf("\t\tNombre:                 %s\n", productos[idx].name);
-            printf("\t\tTamano:                 %.2f gramos\n", productos[idx].tamano);
-            printf("\t\tStock:                  %d unidades\n", productos[idx].stock);
-            printf("\t\tPrecio:                 $%.2f\n", productos[idx].precio);
-            printf("\t\tFecha de ingreso:       %02d/%02d/%04d\n", productos[idx].dia, productos[idx].mes, productos[idx].anio);
-            printf("\t\tProveedor:              %s\n", productos[idx].nombreProveedor);
-            printf("\t\tRIF del proveedor:      %d\n", productos[idx].rifProveedor);
-            printf("\t\tCodigo del proveedor:   %s\n", productos[idx].codigoProveedor);
-            printf("\t\tEstado:                 %s\n", (productos[idx].activo == 1) ? "Disponible" : "No disponible");
-            printf("-----------------------------------------------------------\n");
-            terminado = 1;
-        }
-        else//sino, tira este print
-        {
-            printf("Producto no encontrado.\n");
-        }
-    }
-    return id;
-}
 
 int salir(int valor)
 {
-    if (valor == -1)
+    if (valor == 0)
     {
         printf("===========================================================\n");
         printf("\nAccion cancelada. Volviendo al menu\n\n");
@@ -514,12 +703,12 @@ int leerCodigo()
     int repetido;
 
     printf("====================REGISTRAR PRODUCTO=====================\n");
-    printf("ID (-1 para cancelar): ");
+    printf("ID (0 para cancelar): ");
     scanf("%d", &auxCodigo); //<-auxiliar para validar
 
     if (salir(auxCodigo))//se escribe en cada opción seleccionada para que, en cualquier momento el usuario pueda salir
     {
-        return -1;
+        return 0;
     }
 
     do
@@ -527,14 +716,14 @@ int leerCodigo()
         repetido=0;
 
         //validación del código
-        while(auxCodigo<-1)
+        while(auxCodigo<0)
         {
             printf("ID invalida, intente otra vez: ");
             scanf("%d", &auxCodigo);
 
             if (salir(auxCodigo))
             {
-                return -1;
+                return 0;
             }
         }
         //fin validación
@@ -550,7 +739,7 @@ int leerCodigo()
 
             if (salir(auxCodigo))
             {
-                return -1;
+                return 0;
             }
             repetido=1;
         }
@@ -562,36 +751,36 @@ int leerCodigo()
 
 int leerNombre()
 {
-    printf("Producto (-1 para cancelar): ");
+    printf("Producto (0 para cancelar): ");
     scanf(" %19s", productos[contProductos].name);
 
-    if (productos[contProductos].name[0] == '-' && productos[contProductos].name[1] == '1')
+    if (productos[contProductos].name[0] == '0')
     {
-        salir(-1);
-        return -1;
+        salir(0);
+        return 0;
     }
     return 1;
 }
 
 int leerTamano()
 {
-    printf("Tamano en gramos (-1 para cancelar): ");
+    printf("Tamano en gramos (0 para cancelar): ");
     scanf("%f", &auxTamano);
     
     if (salir((int)auxTamano))
     {
-        return -1;
+        return 0;
     }
 
     //validación del tamaño
-    while(auxTamano<-1)
+    while(auxTamano<0)
     {
         printf("Tamano incorrecto, ingrese el tamano: ");
         scanf("%f", &auxTamano);	
 
         if (salir((int)auxTamano))
         {
-            return -1;
+            return 0;
         }
     }
     //fin validación
@@ -602,25 +791,25 @@ int leerTamano()
 
 int leerStock()
 {
-    printf("Stock (-1 para cancelar): ");
+    printf("Stock (0 para cancelar): ");
     scanf("%d", &auxCantidad);
 
     if (salir(auxCantidad))
     {
-        return -1;
+        return 0;
     }
 
     //validación del stock
-    while(auxCantidad < 1 && auxCantidad != -1)
+    while(auxCantidad < 1 && auxCantidad != 0)
     {
-    printf("Stock incorrecto, ingrese el stock (-1 para cancelar): ");
+    printf("Stock incorrecto, ingrese el stock (0 para cancelar): ");
     scanf("%d", &auxCantidad);	
     }
     //fin validación
 
     if (salir(auxCantidad))
     {
-        return -1;
+        return 0;
     }
 
     productos[contProductos].stock = auxCantidad;
@@ -629,22 +818,22 @@ int leerStock()
 
 float leerPrecio()
 {
-    printf("Precio (-1 para cancelar): $");
+    printf("Precio (0 para cancelar): $");
     scanf("%f", &auxPrecio);
 
     if (salir((int)auxPrecio))
     {
-        return -1;
+        return 0;
     }
 
     //validación del precio
-    while(auxPrecio<0.1 && auxPrecio != -1)
+    while(auxPrecio<0.1 && auxPrecio != 0)
     {
-        printf("Precio invalido, ingrese el precio (-1 para cancelar): ");
+        printf("Precio invalido, ingrese el precio (0 para cancelar): ");
         scanf("%f", &auxPrecio);
         if (salir((int)auxPrecio))
         {
-            return -1;
+            return 0;
         }
     }
     //fin validación
@@ -655,9 +844,9 @@ float leerPrecio()
 
 int leerFechaIngreso()
 {
-    if (gestionFecha() == -1)
+    if (gestionFecha() == 0)
     {
-        return -1;
+        return 0;
     }
 
     return 1;//si to' salió bien
@@ -672,23 +861,25 @@ void leerProveedor()
     {
         encontrado = 0; //al ser una variable global, aqui la reseteamos antes que nada
         coincide = 0;
+        //a ti tengo que ajustarte
+        
 
-        printf("Opciones de RIF: \nRIF-123456789\nRIF-987654321\nRIF-123459876 \nRIF del proveedor (-1 para cancelar): RIF-");
+        printf("RIF del proveedor (0 para cancelar)\n");
+        printf("RIF-");
         scanf("%d", &auxProveedor);
 
         if (salir(auxProveedor))
         {
-            encontrado = -1;
+            encontrado = 0;
             return;
         }
 
         for (p = 0; p < MAX_PROVEEDORES; p++)
         {
-            if (proveedores[p].rif == auxProveedor)
+            if (proveedores[p].rif == auxProveedor && proveedores[p].rif != 0)
             {
-                encontrarProveedor(p);//muestra la información del proveedor encontrado
+                encontrarProveedor(p);
                 coincide++;
-
                 if (encontrado != 0)
                 {
                     break;
@@ -700,7 +891,6 @@ void leerProveedor()
         {
             printf("RIF no encontrado, intente de nuevo.\n");
         }
-        
     } while (encontrado == 0);
 }
 
@@ -722,36 +912,36 @@ int leerActivo()
 //SI EN CUALQUIER MOMENTO DESEA CANCELAR LA ACCIÓN
 int cancelarAccion()
 {
-    if (leerCodigo() == -1)
+    if (leerCodigo() == 0)
     {
-        return -1;
+        return 0;
     }
-    if (leerNombre() == -1)
+    if (leerNombre() == 0)
     {
-        return -1;
+        return 0;
     }
-    if (leerTamano() == -1)
+    if (leerTamano() == 0)
     {
-        return -1;
+        return 0;
     }
-    if (leerStock() == -1)
+    if (leerStock() == 0)
     {
-        return -1;
+        return 0;
     }
-    if (leerPrecio() == -1)
+    if (leerPrecio() == 0)
     {
-        return -1;
+        return 0;
     }
-    if (leerFechaIngreso() == -1)
+    if (leerFechaIngreso() == 0)
     {
-        return -1;
+        return 0;
     }
 
     leerProveedor();
 
-    if (encontrado == -1)
+    if (encontrado == 0)
     {
-        return -1;
+        return 0;
     }
 
     return 1;
@@ -867,12 +1057,12 @@ int diaValido(int day, int month, int year)
 
 int dia()
 {
-    printf("Dia: (DD) (-1 para cancelar): ");
+    printf("Dia: (DD) (0 para cancelar): ");
     scanf("%d", &productos[contProductos].dia);
 
     if (salir(productos[contProductos].dia))
     {
-        return -1;
+        return 0;
     }
 
     //validación del día
@@ -887,12 +1077,12 @@ int dia()
 
 int mes()
 {
-    printf("Mes: (MM) (-1 para cancelar): ");
+    printf("Mes: (MM) (0 para cancelar): ");
     scanf("%d", &productos[contProductos].mes);
 
     if (salir(productos[contProductos].mes))
     {
-        return -1;
+        return 0;
     }
 
     //validación del mes
@@ -907,12 +1097,12 @@ int mes()
 
 int anio()
 {
-    printf("Anio: (AAAA) (-1 para cancelar): ");
+    printf("Anio: (AAAA) (0 para cancelar): ");
     scanf("%d", &productos[contProductos].anio);
 
     if (salir(productos[contProductos].anio))
     {
-        return -1;
+        return 0;
     }
 
     //validación del año
@@ -932,15 +1122,14 @@ void encontrarProveedor(int p)
     int confirmacion;
     confirmacion = posibleProveedor(p); //muestra la información del proveedor encontrado y pregunta si desea seleccionarlo
 
-    if (confirmacion == -1)
+    if (confirmacion == 0)
     {
-        encontrado = -1;
+        encontrado = 0;
         return;
     }
     
     if (confirmacion == 1)
     {
-        guardarProveedor(p); //guarda la información del proveedor seleccionado en el arreglo de productos para que aparezca en los reportes
         encontrado=1;
     }
 }
@@ -948,67 +1137,37 @@ void encontrarProveedor(int p)
 int posibleProveedor(int p)
 {
     int respuesta;
+
     printf("\n----INFORMACION DEL PROVEEDOR----\n");
     printf("RIF: %d\n", proveedores[p].rif);
     printf("Nombre: %s\n", proveedores[p].nombre);
-    printf("Codigo: %s\n", proveedores[p].codigo);
     printf("---------------------------------\n");
 
     printf("Desea seleccionar este proveedor?\n");
-    printf("[ 1 ] Si\n");
-    printf("[ 0 ] No\n");
-    printf("[-1 ] Cancelar\n");
-    printf("-->");
-    scanf("%d", &respuesta);
 
-    if (salir(respuesta))
+    do
     {
-        return -1;
-    }
-
-    //validación de la confirmación
-    while(respuesta < -1 || respuesta > 1)
-    {
-        printf("Opcion invalida\n");
-        printf("[ 1 ] para seleccionar\n");
-        printf("[ 0 ] para no seleccionar\n");
-        printf("[-1 ] para cancelar\n");
+        printf("[ 1 ] Si\n");
+        printf("[ 2 ] No\n");
+        printf("[ 0 ] Cancelar\n");
         printf("-->");
-        scanf("%d", &respuesta);	
-    
+        scanf("%d", &respuesta);
+
         if (salir(respuesta))
         {
-            return -1;
+            return 0;
         }
-    }
-    //fin validación
+
+        //validación de la confirmación
+        if (respuesta < 0 || respuesta > 2)
+        {
+            printf("Opcion invalida\n");
+        }
+        //fin validación
+
+    } while (respuesta < 1 || respuesta > 2);
 
     return respuesta;
-}
-
-void guardarProveedor(int p)
-{
-    int n;
-    int c;
-    //NOMBRE DEL PROVEEDOR
-    for ( n = 0; proveedores[p].nombre[n] != '\0'; n++)
-    {
-        productos[contProductos].nombreProveedor[n] = proveedores[p].nombre[n];//aquí se pone feo, esto hace un print LETRA POR LETRA del nombre del proveedor seleccionado y lo guarda en la información del arreglo del producto, sería más facil si usaramos la librería string.h pero como "las computadoras de la universidad no tienen esas librerías" toca así :v
-    }
-    productos[contProductos].nombreProveedor[n] = '\0'; // Agrega el carácter nulo al final de la cadena
-    //FIN NOMBRE
-
-    //RIF DEL PROVEEDOR
-    productos[contProductos].rifProveedor = proveedores[p].rif;
-    //FIN RIF
-
-    //CODIGO DEL PROVEEDOR
-    for ( c = 0; proveedores[p].codigo[c] != '\0'; c++)
-    {
-        productos[contProductos].codigoProveedor[c] = proveedores[p].codigo[c];//lo mismo que el nombre pero con el código del proveedor
-    }
-    productos[contProductos].codigoProveedor[c] = '\0'; // Agrega el carácter nulo al final de la cadena
-    //FIN CODIGO
 }
 
 void productoEncontrado(int idx)
@@ -1020,6 +1179,6 @@ void productoEncontrado(int idx)
     printf("---------------------------------\n");
     printf("Desea eliminar este producto? \n");
     printf("[ 1 ] Si\n");
-    printf("[ 0 ] No\n");
-    printf("[-1 ] Cancelar\n");
+    printf("[ 2 ] No\n");
+    printf("[ 0 ] Cancelar\n");
 }
